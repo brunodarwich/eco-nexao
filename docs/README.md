@@ -31,14 +31,12 @@ A precedência é: `.kiro/steering/` → `.kiro/specs/` → `spec/` → guias em
 READMEs locais. Rascunhos e apresentações preservam contexto histórico, mas não substituem
 uma spec aprovada.
 
-## Artefatos fora de `docs/`
+## Artefatos e Organização
 
 - `assets/brand/`: logos preparados para uso pelo produto.
-- CSVs na raiz: entradas operacionais mantidas nos caminhos usados pelos comandos atuais.
+- `data/pindobal/`: entradas operacionais e inventário bruto em CSV.
+- `docs/acervo/`: rascunhos de propostas (`proposals/`) e arquivos visuais originais (`visuals/`).
 - `outputs/`: resultados reproduzíveis de ferramentas; não são documentação normativa.
-- `01-topicos-principais.md`, `02-rascunho-proposta-econexao.md`, logos originais e
-  `planejamento-visual-econexao.html`: acervo de origem preservado na raiz para evitar quebra
-  de referências durante esta reorganização.
 
 ## Manutenção
 

@@ -18,13 +18,13 @@ spec. Confirme o ambiente e a conexão antes de executá-lo.
 
 Entradas atuais:
 
-- `santarem-pindobal.csv`: inventário bruto;
-- `pontos_interesse.csv`: complemento operacional.
+- `data/pindobal/santarem-pindobal.csv`: inventário bruto;
+- `data/pindobal/pontos_interesse.csv`: complemento operacional.
 
 Execute:
 
 ```powershell
-uv --cache-dir .uv-cache run --project services/api python services/api/manage.py adapt_pindobal_inventory --raw santarem-pindobal.csv --operational pontos_interesse.csv --output-dir outputs/pindobal-inventory
+uv --cache-dir .uv-cache run --project services/api python services/api/manage.py adapt_pindobal_inventory --raw data/pindobal/santarem-pindobal.csv --operational data/pindobal/pontos_interesse.csv --output-dir outputs/pindobal-inventory
 ```
 
 Saídas:

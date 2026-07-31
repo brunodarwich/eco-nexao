@@ -83,8 +83,8 @@ def test_blocks_when_shared_source_values_diverge():
 def test_current_repository_sources_reconcile_without_duplicate_inflation(tmp_path):
     repository = Path(__file__).resolve().parents[4]
     result = adapt_pindobal_inventory(
-        (repository / "santarem-pindobal.csv").read_bytes(),
-        (repository / "pontos_interesse.csv").read_bytes(),
+        (repository / "data" / "pindobal" / "santarem-pindobal.csv").read_bytes(),
+        (repository / "data" / "pindobal" / "pontos_interesse.csv").read_bytes(),
     )
     assert result.summary["raw_rows"] == 195
     assert result.summary["operational_rows"] == 195
