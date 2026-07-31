@@ -1,0 +1,40 @@
+{
+  "name": "econexao",
+  "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @econexao/web --filter @econexao/admin dev",
+    "dev:app": "pnpm --parallel --filter @econexao/web --filter @econexao/api dev",
+    "dev:web": "pnpm --filter @econexao/web dev",
+    "dev:admin": "pnpm --filter @econexao/admin dev",
+    "dev:api": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py runserver",
+    "dev:dashboard": "uv --cache-dir .uv-cache run --project tools/development_dashboard streamlit run tools/development_dashboard/streamlit_app.py",
+    "seed:pindobal": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py seed_pindobal_demo --publish-demo",
+    "discover:pindobal": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py search_google_places_pindobal",
+    "contracts:schema": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py spectacular --file packages/contracts/openapi/schema.yaml --validate",
+    "contracts:generate": "pnpm contracts:schema && pnpm --filter @econexao/contracts generate && pnpm exec prettier --write packages/contracts/src/api.ts",
+    "contracts:check": "node packages/contracts/scripts/check-generated.mjs",
+    "test:dashboard": "uv --cache-dir .uv-cache run --project tools/development_dashboard pytest tools/development_dashboard",
+    "test:e2e": "pnpm --filter @econexao/web e2e",
+    "build": "pnpm --recursive --if-present build",
+    "lint": "pnpm --recursive --if-present lint && uv --cache-dir .uv-cache run --project services/api ruff check services/api",
+    "format": "prettier --write \"*.{json,md,yaml,yml}\" \"apps/**/*.{css,js,json,md,mjs,ts,tsx}\" \"packages/**/*.{css,js,json,md,mjs,ts,tsx}\" \".github/**/*.{yaml,yml}\" && uv --cache-dir .uv-cache run --project services/api ruff format services/api",
+    "format:check": "prettier --check \"*.{json,md,yaml,yml}\" \"apps/**/*.{css,js,json,md,mjs,ts,tsx}\" \"packages/**/*.{css,js,json,md,mjs,ts,tsx}\" \".github/**/*.{yaml,yml}\" && uv --cache-dir .uv-cache run --project services/api ruff format --check services/api",
+    "typecheck": "pnpm --recursive --if-present typecheck",
+    "test": "pnpm --recursive --if-present test && uv --cache-dir .uv-cache run --project services/api pytest services/api",
+    "check": "pnpm contracts:check && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.1.6",
+    "globals": "^16.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.0.0"
+  }
+}

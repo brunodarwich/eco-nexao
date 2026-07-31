@@ -1,0 +1,20 @@
+{
+  "name": "@econexao/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./button": "./src/button.tsx",
+    "./feedback-state": "./src/feedback-state.tsx",
+    "./styles.css": "./src/styles.css",
+    "./theme": "./src/theme.ts",
+    "./theme-toggle": "./src/theme-toggle.tsx"
+  },
+  "dependencies": {
+    "lucide-react": "^1.28.0",
+    "react": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0"
+  }
+}

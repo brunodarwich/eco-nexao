@@ -1,0 +1,1 @@
+"""Multiregional domain."""

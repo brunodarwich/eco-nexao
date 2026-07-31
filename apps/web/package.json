@@ -1,0 +1,30 @@
+{
+  "name": "@econexao/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "e2e": "playwright test",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run src"
+  },
+  "dependencies": {
+    "@econexao/contracts": "workspace:*",
+    "@econexao/ui": "workspace:*",
+    "lucide-react": "^1.28.0",
+    "maplibre-gl": "^5.24.0",
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@econexao/config": "workspace:*",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0"
+  }
+}

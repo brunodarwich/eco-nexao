@@ -1,0 +1,8 @@
+{
+  "name": "@econexao/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "uv --cache-dir ../../.uv-cache run --project . python manage.py runserver"
+  }
+}

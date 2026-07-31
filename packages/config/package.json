@@ -1,0 +1,10 @@
+{
+  "name": "@econexao/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./eslint": "./eslint.config.mjs",
+    "./tsconfig.nextjs.json": "./tsconfig.nextjs.json"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "canonical_drafts": 181,
+  "category_counts": {
+    "agencia_turismo": 1,
+    "alimentacao": 35,
+    "artesanato": 6,
+    "cartorios": 1,
+    "casas_de_temporada": 10,
+    "hospedagem": 90,
+    "locadora_veiculos": 2,
+    "mercado": 2,
+    "religioso": 14,
+    "servico_publico": 2,
+    "servicos_equipamentos_para_eventos": 3,
+    "shopping_lojas_de_departamento": 1,
+    "transporte": 14
+  },
+  "collapsed_shared_rows": 195,
+  "merged_records": 195,
+  "operational_rows": 195,
+  "operational_sha256": "ce0279eb28a24fe3e138ce3c95b3af02c2fc6eaa454a6b6259c69ceb6fc9a57a",
+  "possible_duplicate_pairs": 0,
+  "priority_counts": {
+    "alta": 146,
+    "baixa": 34,
+    "bloqueante": 14,
+    "média": 115
+  },
+  "quarantined_google_rows": 14,
+  "raw_rows": 195,
+  "raw_sha256": "4f8d130b4bfd28bee44f46ef4ee4eef5d49a1adc06dba8fa7ae3f817b16484ff",
+  "review_code_counts": {
+    "contact_authorization_required": 142,
+    "email_cleaned": 10,
+    "far_from_route": 35,
+    "google_source_quarantine": 14,
+    "instagram_cleaned": 2,
+    "invalid_instagram": 3,
+    "invalid_website": 1,
+    "missing_address": 10,
+    "missing_contact": 39,
+    "missing_coordinates": 1,
+    "missing_route_projection": 1,
+    "multiple_emails": 5,
+    "multiple_phones": 4,
+    "phone_not_normalized": 2,
+    "shared_contact_candidate": 18,
+    "website_cleaned": 22
+  },
+  "review_items": 309,
+  "review_records": 195,
+  "shared_contact_pairs": 9,
+  "source_counts": {
+    "Google Maps": 14,
+    "Inventário da Secretaria de Turismo": 171,
+    "Pesquisa de transporte": 10
+  }
+}

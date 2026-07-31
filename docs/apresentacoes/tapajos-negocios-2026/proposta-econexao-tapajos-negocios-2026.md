@@ -1,0 +1,505 @@
+# ECOnexão na Feira Tapajós Negócios 2026
+
+> **Proposta executiva para a coordenação do evento**  
+> **Versão:** 1.0  
+> **Data:** 30 de julho de 2026  
+> **Evento:** Feira Tapajós Negócios 2026  
+> **Período divulgado:** 27 a 29 de agosto de 2026  
+> **Local:** Centro de Convenções Sebastião Tapajós, Santarém (PA)  
+> **Formato recomendado:** lançamento público em formato piloto
+
+## 1. Resumo executivo
+
+A **ECOnexão** é uma plataforma digital que transforma rotas turísticas em jornadas confiáveis, acessíveis e conectadas à economia local. Em uma única experiência, o visitante descobre uma rota, entende como se preparar, consulta mapa e etapas, encontra negócios, comunidades e pontos de apoio e inicia contatos com os atores do território.
+
+A proposta é realizar, dentro da **Feira Tapajós Negócios 2026**, o lançamento público do piloto da ECOnexão, com a **Rota de Pindobal** como demonstração principal e o eixo Santarém–Alter do Chão como território inicial de validação.
+
+O lançamento foi pensado para se alinhar diretamente à vocação da feira: desenvolvimento econômico, geração de oportunidades, troca de experiências, qualificação das cadeias produtivas, inovação e projeção regional. A ECOnexão acrescenta uma camada de continuidade a essa missão: as conexões apresentadas durante os três dias podem permanecer descobertas e acionáveis pelo visitante depois que o evento terminar.
+
+O pedido central à coordenação é a construção de uma parceria de lançamento que reúna:
+
+- espaço de demonstração e ativação;
+- inserção na programação oficial;
+- apoio de comunicação e credibilidade institucional;
+- articulação com expositores e atores do turismo;
+- distribuição da experiência por QR Codes;
+- acesso a indicadores agregados de ativação, sem exposição de dados pessoais.
+
+## 2. O que a pesquisa sobre a feira revela
+
+A edição de 2026 é apresentada pela Associação Comercial e Empresarial de Santarém (ACES) como a terceira edição da feira, realizada em parceria com a Federação das Associações Comerciais do Estado do Pará (FACIAPA).
+
+As projeções publicadas pela organização indicam:
+
+- **150 expositores**;
+- **35 mil visitantes estimados**;
+- **mais de R$ 100 milhões** em negócios diretos e parcerias posteriores;
+- realização de **27 a 29 de agosto de 2026**, no Centro de Convenções Sebastião Tapajós.
+
+Mais importante do que os números é a linha de pensamento declarada pelo evento. A Tapajós Negócios busca:
+
+- fortalecer o desenvolvimento econômico do Oeste do Pará;
+- aproximar empresários, expositores e visitantes;
+- fomentar negócios e redes de relacionamento;
+- capacitar cadeias produtivas locais;
+- funcionar como vitrine de inovação e oportunidades;
+- projetar Santarém e a região do Tapajós para além do Pará;
+- valorizar cultura, gastronomia, artesanato e identidade amazônica.
+
+A programação e as ações institucionais das edições anteriores reforçam esse caráter híbrido: exposição comercial, conteúdo técnico, gastronomia regional, economia criativa, artesanato e atrações culturais convivem no mesmo ambiente.
+
+### Leitura estratégica
+
+A feira não é apenas um lugar de vendas imediatas. Ela funciona como uma grande plataforma temporária de conexão territorial. A ECOnexão pode transformar parte dessa potência temporária em uma infraestrutura digital permanente, especialmente para o turismo, a economia criativa e os pequenos negócios ligados às rotas.
+
+## 3. O problema que a ECOnexão resolve
+
+O Tapajós possui experiências reconhecidas, paisagens singulares, cultura, gastronomia e uma ampla rede de prestadores. Contudo, para o visitante, a informação prática costuma estar fragmentada entre mecanismos de busca, redes sociais, sites, aplicativos de mensagem e indicações pessoais.
+
+Essa fragmentação dificulta perguntas simples:
+
+- Qual experiência combina com o meu tempo, interesse e orçamento?
+- Como chegar e retornar?
+- O que preciso levar?
+- Quais condições devo confirmar antes de sair?
+- Onde estão alimentação, transporte, hospedagem e pontos de apoio?
+- Quais atores locais fazem parte da rota?
+- Como consultar o essencial se a conexão falhar?
+
+Para os negócios e comunidades, o problema aparece do outro lado:
+
+- presença digital isolada, fora do contexto da viagem;
+- dificuldade para aparecer no momento da decisão;
+- pouca capacidade de associar um contato à rota que despertou o interesse;
+- menor visibilidade para quem não domina os canais digitais;
+- dependência de informações espalhadas e rapidamente desatualizadas.
+
+Para gestores e instituições, o desafio é manter uma base viva, verificável e útil sem perder o controle editorial, a rastreabilidade ou a confiança do público.
+
+## 4. A solução
+
+A ECOnexão organiza a experiência turística em três movimentos:
+
+### Descobrir
+
+O visitante explora o território, compara rotas e escolhe uma experiência compatível com seu perfil.
+
+### Preparar
+
+Antes de sair, consulta acesso, retorno, duração, dificuldade, custos estimados, conectividade, itens necessários, alertas e pontos de apoio.
+
+### Percorrer
+
+Durante a experiência, acompanha etapas, utiliza mapa ou alternativa textual, consulta o conteúdo essencial offline e encontra atores locais contextualizados na rota.
+
+### A rota como corredor de oportunidades
+
+Na ECOnexão, uma rota não é apenas uma linha no mapa. Ela organiza uma cadeia de valor:
+
+`inspiração → planejamento → deslocamento → experiência → consumo local → recomendação`
+
+Ao longo dessa jornada podem aparecer, com contexto:
+
+- guias e condutores;
+- transportadores;
+- hospedagens;
+- alimentação e gastronomia;
+- artesanato e economia criativa;
+- experiências comunitárias;
+- pontos de apoio, saúde e segurança;
+- instituições e iniciativas territoriais.
+
+## 5. Proposta de valor
+
+### Para visitantes
+
+- informação mais simples, prática e confiável;
+- preparação antes do deslocamento;
+- acesso sem conta obrigatória;
+- localização opcional e sob demanda;
+- mapa acompanhado de alternativa textual;
+- conteúdo essencial disponível offline;
+- contato rápido com atores relevantes.
+
+### Para negócios, guias, artesãos e comunidades
+
+- presença dentro da jornada real do visitante;
+- contexto que explica por que aquele ator é relevante;
+- contatos mais qualificados;
+- inclusão de atores menos digitalizados;
+- indicadores agregados de interesse e interação;
+- separação clara entre curadoria e presença patrocinada.
+
+### Para gestores e instituições
+
+- organização estruturada da oferta;
+- conteúdo com fonte, responsável e data de revisão;
+- fluxo editorial com revisão humana;
+- indicadores agregados de procura e interação;
+- base replicável para novas rotas e regiões;
+- apoio à promoção, ao planejamento e à melhoria contínua.
+
+### Para a Tapajós Negócios
+
+- uma atração de inovação com aplicação concreta no território;
+- continuidade digital para conexões iniciadas na feira;
+- valorização conjunta de turismo, gastronomia, artesanato e serviços;
+- narrativa de legado regional, além dos três dias do evento;
+- experiência interativa distribuída por QR Code;
+- indicadores de ativação úteis para a comunicação pós-evento.
+
+## 6. Por que lançar na Tapajós Negócios
+
+O encaixe entre o evento e o produto ocorre em cinco pontos:
+
+1. **Negócios:** a plataforma conduz o visitante até atores locais no contexto de uma necessidade real.
+2. **Inovação:** apresenta uma solução digital construída a partir das condições do território.
+3. **Cadeias produtivas:** conecta turismo, transporte, gastronomia, artesanato, serviços e comunidades.
+4. **Projeção regional:** começa no Tapajós com arquitetura preparada para outras regiões.
+5. **Legado:** prolonga a descoberta e o relacionamento depois do encerramento da feira.
+
+A presença no evento também cria uma oportunidade rara de validação assistida: visitantes, empreendedores, gestores e parceiros podem experimentar o produto, sugerir correções e discutir o modelo no mesmo ambiente.
+
+## 7. Formato de lançamento recomendado
+
+Recomenda-se comunicar a estreia como:
+
+> **Lançamento público do piloto ECOnexão — turismo de experiência conectado à economia local.**
+
+Essa formulação combina ambição com responsabilidade. O projeto já possui uma experiência de produto e uma rota-modelo, mas ainda depende de portões de prontidão para ampliar o portfólio e ativar todas as métricas previstas.
+
+### 7.1 Momento de palco
+
+Uma apresentação de 10 a 12 minutos com quatro mensagens:
+
+1. o turismo do Tapajós já é uma rede de negócios;
+2. a informação fragmentada reduz confiança e distribui mal as oportunidades;
+3. a ECOnexão organiza a jornada e torna os atores locais acionáveis;
+4. a feira pode ser o ponto de partida de um legado digital regional.
+
+Encerramento com QR Code para experimentar o piloto e convite para parceiros interessados.
+
+### 7.2 Estação de demonstração
+
+Um espaço de uso rápido, com:
+
+- tela principal exibindo a jornada da Rota de Pindobal;
+- dois aparelhos para navegação assistida;
+- painel visual “descobrir, preparar, percorrer”;
+- QR Code de acesso;
+- formulário curto de interesse para atores que desejam participar da curadoria;
+- equipe orientando visitantes e coletando feedback.
+
+### 7.3 Trilha de QR Codes
+
+Aplicação de QR Codes em pontos autorizados do evento para criar uma pequena jornada:
+
+- entrada ou credenciamento: descobrir o projeto;
+- espaço de turismo ou economia criativa: conhecer a rota;
+- gastronomia/artesanato: entender como negócios entram no contexto;
+- estação ECOnexão: testar e dar feedback.
+
+Os QR Codes devem utilizar parâmetros de campanha não pessoais para permitir leitura agregada da ativação.
+
+### 7.4 Encontro de articulação
+
+Uma sessão curta com coordenação, turismo, empreendedores, comunidades e parceiros para:
+
+- apresentar critérios de entrada e verificação;
+- identificar fontes e responsáveis por conteúdo;
+- mapear atores interessados;
+- discutir contrapartidas e governança;
+- formar uma rede de colaboração pós-feira.
+
+### 7.5 Comunicação conjunta
+
+Materiais sugeridos:
+
+- anúncio “ECOnexão será lançada em formato piloto na Tapajós Negócios”;
+- vídeo curto de demonstração;
+- peça com QR Code;
+- roteiro para imprensa e influenciadores;
+- registro de depoimentos espontâneos, mediante consentimento;
+- balanço pós-evento com métricas agregadas e próximos passos.
+
+## 8. Escopo do piloto apresentado no evento
+
+### Entrega demonstrável
+
+- experiência pública responsiva e instalável;
+- seleção de região;
+- descoberta de rotas;
+- Rota de Pindobal como rota-modelo;
+- visão geral, preparação, etapas, mapa e catálogo;
+- ações locais e salvamento offline seletivo;
+- tema claro e escuro;
+- painel protegido e fluxo editorial;
+- conteúdo com revisão humana.
+
+### Itens condicionados a prontidão
+
+- publicação das cinco rotas do portfólio;
+- analytics completo com consentimento;
+- relatos de informação incorreta;
+- importação CSV concluída e verificada;
+- validação integrada de acessibilidade, rede limitada, backup e resposta a incidentes.
+
+### Fora do piloto
+
+- marketplace;
+- reservas e pagamentos;
+- avaliações públicas;
+- conta obrigatória;
+- rastreamento contínuo;
+- publicação automática por inteligência artificial.
+
+## 9. Plano acelerado até o evento
+
+Considerando a data desta proposta e o período divulgado da feira, o lançamento deve ser tratado como uma operação concentrada de quatro semanas.
+
+### Semana 1 — acordo e escopo
+
+- aprovar o formato de lançamento;
+- definir responsáveis e canal de decisão;
+- confirmar espaço, palco e comunicação;
+- congelar o escopo público do piloto;
+- levantar pendências críticas da Rota de Pindobal.
+
+### Semana 2 — conteúdo e ativação
+
+- revisar dados críticos, fontes e permissões;
+- preparar QR Codes e materiais;
+- desenhar a estação de demonstração;
+- selecionar atores que participarão do exemplo;
+- iniciar testes moderados.
+
+### Semana 3 — homologação
+
+- testar aparelhos, navegadores, tema e acessibilidade;
+- validar funcionamento em conectividade limitada;
+- revisar privacidade, consentimento e mensagens públicas;
+- ensaiar palco e atendimento;
+- decidir o go/no-go do piloto.
+
+### Semana 4 — lançamento
+
+- publicar a versão aprovada;
+- treinar equipe;
+- instalar e testar a ativação;
+- acompanhar uso e incidentes durante os três dias;
+- registrar feedback e métricas agregadas.
+
+### Pós-evento
+
+- apresentar um balanço em até 15 dias;
+- priorizar correções;
+- consolidar parceiros e responsáveis;
+- decidir expansão para as demais rotas.
+
+## 10. Papéis propostos
+
+### Equipe ECOnexão
+
+- produto e operação da plataforma;
+- preparação da demonstração;
+- curadoria e rastreabilidade do conteúdo;
+- configuração de QR Codes e indicadores;
+- treinamento da equipe de apoio;
+- suporte durante a ativação;
+- relatório pós-evento.
+
+### Coordenação da Tapajós Negócios
+
+- validação do formato e inserção institucional;
+- definição de espaço e horário;
+- autorização dos pontos de QR Code;
+- articulação com expositores e parceiros;
+- inclusão na comunicação oficial;
+- alinhamento operacional com produção, credenciamento e imprensa.
+
+### Parceiros territoriais
+
+- confirmação de informações;
+- indicação de fontes e responsáveis;
+- autorização de uso de conteúdo e imagem;
+- participação na curadoria;
+- divulgação;
+- resposta a correções e atualizações.
+
+## 11. Indicadores de sucesso
+
+### Ativação no evento
+
+- leituras de QR Code por ponto;
+- sessões iniciadas;
+- abertura da Rota de Pindobal;
+- uso das áreas de preparação, mapa e catálogo;
+- salvamentos offline;
+- compartilhamentos;
+- feedbacks recebidos;
+- organizações interessadas em participar.
+
+### Valor para os atores locais
+
+- visualizações contextualizadas;
+- cliques em WhatsApp, ligação, site ou “como chegar”;
+- contatos por categoria e rota;
+- distribuição das interações entre diferentes tipos de atores.
+
+### Qualidade do piloto
+
+- disponibilidade durante o evento;
+- tempo para corrigir informação;
+- relatos ou incidentes críticos;
+- taxa de sucesso em aparelhos móveis;
+- avaliação de utilidade;
+- dados críticos dentro da validade.
+
+As interações representam **intenção**, não vendas confirmadas. Os resultados devem ser apresentados de forma agregada e compatível com a LGPD.
+
+## 12. Governança, confiança e segurança
+
+- nenhuma importação, automação ou IA publica conteúdo diretamente;
+- informações críticas exigem fonte, responsável e data de revisão;
+- conteúdo patrocinado deve ser identificado;
+- localização permanece opcional e sob demanda;
+- analytics opcional depende de consentimento;
+- não são enviados dados pessoais ou coordenadas para analytics;
+- o mapa possui alternativa textual acessível;
+- autorizações de uso de dados, marcas e imagens devem ser registradas;
+- a curadoria editorial não pode ser alterada silenciosamente por interesse comercial;
+- deve existir protocolo de correção e retirada durante o evento.
+
+## 13. Riscos e respostas
+
+| Risco                              | Resposta                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------- |
+| Prometer cinco rotas sem prontidão | Lançar o piloto com Pindobal e mostrar expansão como próxima etapa              |
+| Informação crítica desatualizada   | Usar portão de publicação com fonte, responsável e validade                     |
+| Conectividade instável             | Preparar conteúdo essencial offline e rede de contingência no estande           |
+| Confusão entre guia e marketplace  | Explicar que o piloto gera descoberta e contato, sem processar transações       |
+| Baixa adesão dos visitantes        | Usar demonstração assistida, QR Codes em pontos estratégicos e chamada de palco |
+| Patrocínio afetar confiança        | Separar curadoria de presença comercial e identificar patrocínio                |
+| Coleta excessiva de dados          | Trabalhar com consentimento, allowlist e indicadores agregados                  |
+| Prazo curto                        | Congelar escopo, definir go/no-go e evitar funcionalidades novas de alto risco  |
+
+## 14. Contrapartidas a negociar
+
+### Solicitadas à coordenação
+
+- espaço de demonstração com energia e conectividade;
+- participação breve na programação;
+- inserção da marca nos canais oficiais;
+- autorização para QR Codes;
+- apoio na articulação com expositores;
+- credenciais operacionais;
+- alinhamento com imprensa e produção;
+- ponto focal com poder de decisão.
+
+### Oferecidas pela ECOnexão
+
+- experiência de inovação aplicada ao território;
+- ativação interativa para o público;
+- demonstração da conexão entre turismo e economia local;
+- material para comunicação;
+- indicadores agregados de uso;
+- relatório pós-evento;
+- possibilidade de continuidade com rotas, parceiros e futuras edições.
+
+## 15. Decisão solicitada
+
+Propõe-se que a coordenação aprove:
+
+1. o lançamento público do piloto ECOnexão dentro da Feira Tapajós Negócios 2026;
+2. uma estação de demonstração com QR Code;
+3. um momento de palco;
+4. comunicação conjunta;
+5. articulação com expositores e instituições;
+6. a nomeação de pontos focais para fechar operação, conteúdo e comunicação.
+
+Após a aprovação conceitual, recomenda-se uma reunião executiva de 60 minutos para concluir escopo, responsabilidades, estrutura, cronograma e portões de prontidão.
+
+---
+
+## 16. Plano da apresentação
+
+### Trabalho de comunicação
+
+Ao final, a coordenação da Tapajós Negócios deve compreender que a ECOnexão amplia a missão econômica e regional da feira ao transformar rotas turísticas em conexões digitais permanentes — e deve se sentir segura para aprovar um lançamento piloto responsável dentro do evento.
+
+### Arco narrativo
+
+`potência da feira → oportunidade não capturada → solução → demonstração → valor para o evento → ativação → prontidão → decisão`
+
+### Sequência de slides
+
+1. **ECOnexão no Tapajós Negócios 2026**  
+   Abre a conversa com uma proposta objetiva de lançamento.
+
+2. **A feira conecta o território. A ECOnexão prolonga a conexão.**  
+   Mostra o alinhamento estratégico com as projeções e objetivos do evento.
+
+3. **A riqueza existe; a jornada ainda está fragmentada.**  
+   Apresenta o problema do visitante, dos negócios e da gestão.
+
+4. **Uma jornada simples: descobrir, preparar e percorrer.**  
+   Explica a lógica do produto sem entrar em arquitetura técnica.
+
+5. **Cada rota organiza uma cadeia de oportunidades.**  
+   Posiciona a rota como unidade econômica e não apenas turística.
+
+6. **Pindobal transforma a proposta em experiência.**  
+   Demonstra o piloto e suas funções principais.
+
+7. **Para a feira, o lançamento deixa um legado mensurável.**  
+   Traduz o produto em valor para a coordenação.
+
+8. **O lançamento acontece em quatro frentes integradas.**  
+   Apresenta palco, estação, QR Codes e articulação.
+
+9. **O visitante participa, testa e continua conectado.**  
+   Mostra a jornada da ativação.
+
+10. **Ambição com responsabilidade: lançar o piloto certo.**  
+    Delimita o que estará pronto e o que permanece condicionado.
+
+11. **Em quatro semanas, foco e governança definem a prontidão.**  
+    Apresenta o plano acelerado e o portão de go/no-go.
+
+12. **A decisão agora é abrir o território para a experiência.**  
+    Encerra com o pedido claro à coordenação.
+
+### Direção visual
+
+- formato 16:9;
+- fundo claro predominante;
+- verdes da marca para estrutura e confiança;
+- amarelo em chamadas pontuais;
+- fotografia e interface do território;
+- tipografia grande, linguagem direta e baixa densidade;
+- logo horizontal nos cabeçalhos e quadrada em telas compactas;
+- contraste e navegação por teclado;
+- versão imprimível e respeito a movimento reduzido.
+
+## 17. Fontes da pesquisa
+
+1. **Associação Comercial e Empresarial de Santarém — lançamento da Feira Tapajós Negócios 2026**  
+   https://acestapajos.com.br/49291-2/  
+   Consulta em 30 de julho de 2026.
+
+2. **Portal da Transparência de Santarém — Chamamento Público nº 001/2026, SEMTUR**  
+   https://transparencia.santarem.pa.gov.br/licitacao-contratos-convenios/licitacao/chamamento-publico-0012026-c7da7947-adaa-45b7-a24a-e4d66fa26b7d  
+   Consulta em 30 de julho de 2026.
+
+3. **Site da Feira Tapajós Negócios — programação e posicionamento da edição 2025**  
+   https://www.tapajosnegocios.com/  
+   Consulta em 30 de julho de 2026.
+
+4. **Prefeitura de Santarém — artesanato, cultura e economia criativa na feira**  
+   https://santarem.pa.gov.br/noticias/turismo/semtur-promove-acoes-de-valorizacao-aos-artesaos-uwqyvp  
+   Consulta em 30 de julho de 2026.
+
+5. **Documentação de produto ECOnexão**  
+   `spec/01-prd.md`, `.kiro/steering/product.md` e `.kiro/steering/design-system.md`.
+
+> **Nota metodológica:** números históricos publicados por fontes distintas apresentam divergências. Para evitar misturar metodologias, a apresentação utiliza apenas as projeções de 2026 divulgadas pela ACES e não compara valores históricos entre fontes.

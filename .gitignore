@@ -1,0 +1,32 @@
+# JavaScript
+node_modules/
+.next/
+.next-e2e/
+out/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Python
+.venv/
+.uv-cache/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[cod]
+services/api/db.sqlite3
+
+# Environment and local tooling
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+.vscode/
+.runtime/
+.pnpm-store/
+.pytest-tmp*/
+.turbo/
+*.log
+
