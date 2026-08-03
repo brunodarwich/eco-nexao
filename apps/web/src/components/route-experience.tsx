@@ -4,13 +4,17 @@ import { Button } from '@econexao/ui/button'
 import { FeedbackState } from '@econexao/ui/feedback-state'
 import {
   Accessibility,
+  AlertTriangle,
   ArrowLeft,
   BadgeDollarSign,
   Clock3,
   Compass,
   Gauge,
+  Info,
+  MapPin,
   Play,
   Share2,
+  ShieldAlert,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -193,115 +197,197 @@ function RouteOverview({ route }: { route: RouteDetail }) {
   const criticalAlerts = route.alerts.filter(
     (alert) => alert.severity === 'critical',
   )
+  const nonCriticalAlerts = route.alerts.filter(
+    (alert) => alert.severity !== 'critical',
+  )
+  const hasPreparation = Boolean(
+    route.preparation_content || route.accessibility_content,
+  )
 
   return (
-    <>
-      <section
-        aria-labelledby="preparation-title"
-        className="route-section route-section--preparation"
-      >
-        <p className="eyebrow">Preparação</p>
-        <h2 id="preparation-title">Prepare-se para visitar</h2>
-        <div className="preparation-list">
-          <article className="preparation-item">
-            <span aria-hidden="true" className="preparation-item__icon">
-              <Compass />
-            </span>
-            <div>
-              <h3>Orientações essenciais</h3>
-              <p>{route.preparation_content}</p>
-            </div>
-          </article>
-          {route.accessibility_content ? (
-            <article className="preparation-item">
-              <span aria-hidden="true" className="preparation-item__icon">
-                <Accessibility />
-              </span>
-              <div>
-                <h3>Acessibilidade</h3>
-                <p>{route.accessibility_content}</p>
-              </div>
-            </article>
-          ) : null}
-        </div>
-      </section>
+    <div className="route-overview">
+      {hasPreparation ? (
+        <section
+          aria-labelledby="preparation-title"
+          className="route-section route-section--preparation"
+        >
+          <p className="eyebrow">Preparação</p>
+          <h2 id="preparation-title">Prepare-se para visitar</h2>
+          <div className="preparation-list">
+            {route.preparation_content ? (
+              <article className="preparation-item">
+                <span aria-hidden="true" className="preparation-item__icon">
+                  <Compass aria-hidden="true" />
+                </span>
+                <div>
+                  <h3>Orientações essenciais</h3>
+                  <p>{route.preparation_content}</p>
+                </div>
+              </article>
+            ) : null}
+            {route.accessibility_content ? (
+              <article className="preparation-item">
+                <span aria-hidden="true" className="preparation-item__icon">
+                  <Accessibility aria-hidden="true" />
+                </span>
+                <div>
+                  <h3>Acessibilidade</h3>
+                  <p>{route.accessibility_content}</p>
+                </div>
+              </article>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
-      {route.alerts.length > 0 ? (
-        <section aria-labelledby="alerts-title" className="route-section">
+      {criticalAlerts.length > 0 ? (
+        <section
+          aria-labelledby="critical-alerts-title"
+          className="route-section"
+        >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">
-                {criticalAlerts.length > 0
-                  ? 'Atenção prioritária'
-                  : 'Antes de sair'}
-              </p>
-              <h2 id="alerts-title">Alertas ativos</h2>
+              <p className="eyebrow">Atenção prioritária</p>
+              <h2 id="critical-alerts-title">Alertas de segurança</h2>
             </div>
           </div>
           <div className="alert-list">
-            {route.alerts.map((alert) => (
+            {criticalAlerts.map((alert) => (
               <article
-                className={`route-alert route-alert--${alert.severity}`}
+                className="route-alert route-alert--critical"
                 key={alert.id}
               >
-                <strong>
-                  {alert.severity === 'critical'
-                    ? 'Crítico: '
-                    : alert.severity === 'warning'
-                      ? 'Atenção: '
-                      : 'Informação: '}
-                  {alert.title}
-                </strong>
-                <p>{alert.description}</p>
-                {alert.alternative ? (
-                  <p>Alternativa: {alert.alternative}</p>
-                ) : null}
+                <div className="route-alert__header">
+                  <span aria-hidden="true" className="route-alert__icon">
+                    <ShieldAlert aria-hidden="true" />
+                  </span>
+                  <div>
+                    <strong>{alert.title}</strong>
+                    {alert.description ? <p>{alert.description}</p> : null}
+                    {alert.alternative ? (
+                      <p className="route-alert__alternative">
+                        Alternativa: {alert.alternative}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
               </article>
             ))}
           </div>
         </section>
       ) : null}
 
-      <section
-        aria-labelledby="about-title"
-        className="route-section route-copy"
-      >
-        <p className="eyebrow">Sobre a experiência</p>
-        <h2 id="about-title">O que esperar</h2>
-        <p>{route.description}</p>
-      </section>
-
-      <section aria-labelledby="stages-title" className="route-section">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">Passo a passo</p>
-            <h2 id="stages-title">Etapas da rota</h2>
+      {nonCriticalAlerts.length > 0 ? (
+        <section
+          aria-labelledby="non-critical-alerts-title"
+          className="route-section route-section--warning"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Antes de sair</p>
+              <h2 id="non-critical-alerts-title">Faixa de atenção</h2>
+            </div>
           </div>
-          <Link href={`/${route.region_slug}/rotas/${route.slug}/mapa`}>
-            Ver mapa
-          </Link>
-        </div>
-        <ol className="stage-list">
-          {route.stages.map((stage) => (
-            <li key={stage.id}>
-              <span className="stage-list__number" aria-hidden="true">
-                {stage.position}
-              </span>
-              <div>
-                <h3>{stage.public_name}</h3>
-                <p>{stage.description}</p>
-                <p className="muted-text">
-                  {stage.duration_minutes
-                    ? `Tempo estimado: ${formatDuration(stage.duration_minutes)}. `
-                    : ''}
-                  {stage.arrival_guidance}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-    </>
+          <div className="alert-list">
+            {nonCriticalAlerts.map((alert) => (
+              <article
+                className="route-alert route-alert--warning-banner"
+                key={alert.id}
+              >
+                <div className="route-alert__header">
+                  <span aria-hidden="true" className="route-alert__icon">
+                    {alert.severity === 'warning' ? (
+                      <AlertTriangle aria-hidden="true" />
+                    ) : (
+                      <Info aria-hidden="true" />
+                    )}
+                  </span>
+                  <div>
+                    <strong>{alert.title}</strong>
+                    {alert.description ? <p>{alert.description}</p> : null}
+                    {alert.alternative ? (
+                      <p className="route-alert__alternative">
+                        Alternativa: {alert.alternative}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {route.description ? (
+        <section
+          aria-labelledby="about-title"
+          className="route-section route-copy"
+        >
+          <p className="eyebrow">Sobre a experiência</p>
+          <h2 id="about-title">O que esperar</h2>
+          <p>{route.description}</p>
+        </section>
+      ) : null}
+
+      {route.stages.length > 0 ? (
+        <section
+          aria-labelledby="stages-title"
+          className="route-section route-section--stages"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Passo a passo</p>
+              <h2 id="stages-title">Etapas da rota</h2>
+            </div>
+            <Link
+              className="stage-map-link"
+              href={`/${route.region_slug}/rotas/${route.slug}/mapa`}
+            >
+              <MapPin aria-hidden="true" />
+              <span>Ver mapa</span>
+            </Link>
+          </div>
+          <ol className="stage-list">
+            {route.stages.map((stage, index) => {
+              const isLast = index === route.stages.length - 1
+              return (
+                <li
+                  className={`stage-item${isLast ? ' stage-item--last' : ''}`}
+                  key={stage.id}
+                >
+                  <div className="stage-item__timeline">
+                    <span className="stage-item__number" aria-hidden="true">
+                      {stage.position}
+                    </span>
+                    {!isLast ? (
+                      <span
+                        className="stage-item__connector"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="stage-item__body">
+                    <div className="stage-item__header">
+                      <h3>{stage.public_name}</h3>
+                      {stage.duration_minutes ? (
+                        <span className="stage-item__duration">
+                          <Clock3 aria-hidden="true" />
+                          <span>{formatDuration(stage.duration_minutes)}</span>
+                        </span>
+                      ) : null}
+                    </div>
+                    {stage.description ? <p>{stage.description}</p> : null}
+                    {stage.arrival_guidance ? (
+                      <p className="muted-text">{stage.arrival_guidance}</p>
+                    ) : null}
+                  </div>
+                </li>
+              )
+            })}
+          </ol>
+        </section>
+      ) : null}
+    </div>
   )
 }
 

@@ -11,6 +11,8 @@ Decisões de produto e implementação continuam nas specs.
 | instalar, executar ou validar localmente     | [desenvolvimento local](development/setup.md)                         |
 | entender os componentes e limites do sistema | [visão de arquitetura](architecture/overview.md)                      |
 | operar os dados demonstrativos de Pindobal   | [operação de Pindobal](operations/pindobal.md)                        |
+| backup, rollback e resposta a incidentes     | [backup e incidentes](operations/incidents-and-rollback.md)          |
+| consultar relatório de Go/No-Go do piloto    | [relatório de Go/No-Go](operations/pilot-go-no-go-report.md)          |
 | requisitos detalhados do produto             | [índice da especificação](../spec/README.md)                          |
 | executar tarefas aprovadas                   | [sistema de specs](../.kiro/README.md)                                |
 | consultar o contrato da API                  | [pacote de contratos](../packages/contracts/README.md)                |

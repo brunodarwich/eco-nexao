@@ -9,7 +9,7 @@ operação editorial protegida e uma API como única porta de acesso aos dados.
 | ----------------------------- | --------------------------------------------------------- | -------------------------- |
 | `apps/web`                    | PWA pública, rotas, catálogo, mapa e pacote offline       | Next.js, React, TypeScript |
 | `apps/admin`                  | painel operacional e fluxos editoriais                    | Next.js, React, TypeScript |
-| `services/api`                | domínio, autenticação, importação, publicação e auditoria | Django, DRF, GeoDjango     |
+| `services/api`                | domínio, autenticação, importação, publicação, auditoria e relatos | Django, DRF, GeoDjango     |
 | `packages/ui`                 | tokens, estilos e componentes compartilhados              | React e CSS                |
 | `packages/contracts`          | OpenAPI e tipos TypeScript derivados                      | OpenAPI                    |
 | `packages/config`             | configurações compartilhadas                              | TypeScript e ESLint        |

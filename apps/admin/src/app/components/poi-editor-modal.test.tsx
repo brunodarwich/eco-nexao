@@ -62,6 +62,9 @@ describe('PoiEditorModal Component', () => {
     expect(markup).toContain('Cadastrar Ponto')
     expect(markup).toContain('Cancelar')
     expect(markup).toContain('aria-label="Fechar modal"')
+    expect(markup).toContain('aria-modal="true"')
+    expect(markup).toContain('tabindex="-1"')
+    expect(markup).toContain('data-autofocus')
   })
 
   it('renders edit mode with pre-filled initialData fields', () => {

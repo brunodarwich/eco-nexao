@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@econexao/ui/button'
+import { ChevronDown, ChevronUp, Layers, Locate, Maximize2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RouteCatalogItem, RouteDetail } from '@/lib/public-api'
 import {
@@ -8,6 +9,7 @@ import {
   getRouteMapPoints,
   type RouteMapPoint,
 } from '@/lib/route-map-points'
+import { useModalA11y } from '@/lib/use-modal-a11y'
 
 interface RouteMapProps {
   catalog: RouteCatalogItem[]
@@ -87,6 +89,10 @@ export function RouteMap({ catalog, route }: RouteMapProps) {
   const visiblePointsRef = useRef<RouteMapPoint[]>([])
   const [activeCategory, setActiveCategory] = useState('')
   const [locationState, setLocationState] = useState<LocationState>('idle')
+  const locationDialogRef = useModalA11y<HTMLDivElement>(
+    locationState === 'explaining',
+    () => setLocationState('idle'),
+  )
   const [mapMessage, setMapMessage] = useState('')
   const allPoints = useMemo(() => getRouteMapPoints(catalog), [catalog])
   const visiblePoints = useMemo(
@@ -405,6 +411,8 @@ export function RouteMap({ catalog, route }: RouteMapProps) {
     })
   }
 
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false)
+
   function centerRoute() {
     fitCoordinates(
       route.stages.map((stage) => stage.point.coordinates as [number, number]),
@@ -416,7 +424,7 @@ export function RouteMap({ catalog, route }: RouteMapProps) {
   }
 
   return (
-    <section aria-labelledby="route-map-title">
+    <section aria-labelledby="route-map-title" className="route-map-container">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Mapa da rota</p>
@@ -466,11 +474,13 @@ export function RouteMap({ catalog, route }: RouteMapProps) {
 
       <div className="map-actions">
         <Button onClick={centerRoute} type="button" variant="secondary">
-          Centralizar no percurso
+          <Maximize2 aria-hidden="true" />
+          <span>Centralizar no percurso</span>
         </Button>
         {visiblePoints.length > 0 ? (
           <Button onClick={showVisiblePoints} type="button" variant="secondary">
-            Ver pontos filtrados
+            <Layers aria-hidden="true" />
+            <span>Ver pontos filtrados</span>
           </Button>
         ) : null}
         <Button
@@ -478,15 +488,19 @@ export function RouteMap({ catalog, route }: RouteMapProps) {
           type="button"
           variant="secondary"
         >
-          Usar minha localização
+          <Locate aria-hidden="true" />
+          <span>Usar minha localização</span>
         </Button>
       </div>
 
       {locationState === 'explaining' ? (
         <div
+          ref={locationDialogRef}
           aria-labelledby="location-title"
+          aria-modal="true"
           className="location-consent"
           role="dialog"
+          tabIndex={-1}
         >
           <h3 id="location-title">Usar sua posição somente neste aparelho?</h3>
           <p>
@@ -494,7 +508,9 @@ export function RouteMap({ catalog, route }: RouteMapProps) {
             não será enviada à ECOnexão, ao analytics ou aos nossos servidores.
           </p>
           <div className="map-actions">
-            <Button onClick={requestLocation}>Continuar</Button>
+            <Button data-autofocus onClick={requestLocation}>
+              Continuar
+            </Button>
             <Button
               onClick={() => setLocationState('idle')}
               type="button"
@@ -529,12 +545,83 @@ export function RouteMap({ catalog, route }: RouteMapProps) {
           {mapMessage}
         </p>
       ) : null}
-      <div
-        aria-label={`Mapa da rota ${route.public_name}`}
-        className="route-map-canvas"
-        ref={containerRef}
-        role="region"
-      />
+
+      <div className="route-map-wrapper">
+        <div
+          aria-label={`Mapa da rota ${route.public_name}`}
+          className="route-map-canvas"
+          ref={containerRef}
+          role="region"
+        />
+
+        <div className="map-overlay-controls">
+          <button
+            aria-label="Centralizar no percurso"
+            className="map-overlay-button"
+            onClick={centerRoute}
+            type="button"
+          >
+            <Maximize2 aria-hidden="true" />
+          </button>
+          <button
+            aria-label="Centralizar mapa na minha localização"
+            className="map-overlay-button"
+            onClick={() => setLocationState('explaining')}
+            type="button"
+          >
+            <Locate aria-hidden="true" />
+          </button>
+        </div>
+
+        <div
+          className={`map-bottom-sheet${
+            isSheetExpanded ? ' map-bottom-sheet--expanded' : ''
+          }`}
+        >
+          <button
+            aria-expanded={isSheetExpanded}
+            aria-label={
+              isSheetExpanded
+                ? 'Recolher resumo de etapas do mapa'
+                : 'Expandir resumo de etapas do mapa'
+            }
+            className="map-sheet-handle-button"
+            onClick={() => setIsSheetExpanded(!isSheetExpanded)}
+            type="button"
+          >
+            <span aria-hidden="true" className="map-sheet-handle" />
+            <div className="map-sheet-summary">
+              <strong>{route.public_name}</strong>
+              <span>
+                {route.stages.length} etapas • {visiblePoints.length} pontos
+              </span>
+            </div>
+            {isSheetExpanded ? (
+              <ChevronDown aria-hidden="true" />
+            ) : (
+              <ChevronUp aria-hidden="true" />
+            )}
+          </button>
+
+          {isSheetExpanded ? (
+            <div className="map-sheet-content">
+              <h4>Etapas do percurso</h4>
+              <ol className="stage-list">
+                {route.stages.map((stage) => (
+                  <li key={stage.id}>
+                    <div>
+                      <strong>
+                        {stage.position}. {stage.public_name}
+                      </strong>
+                      {stage.description ? <p>{stage.description}</p> : null}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       <div className="map-list-alternative">
         <h3>Lista equivalente ao mapa</h3>

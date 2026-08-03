@@ -49,6 +49,11 @@ AUDIT_METADATA_FIELDS: dict[str, dict[str, type]] = {
         "update_count": int,
         "archive_count": int,
     },
+    AuditEvent.Action.REPORT_MODERATE: {
+        "report_id": str,
+        "previous_status": str,
+        "new_status": str,
+    },
 }
 
 

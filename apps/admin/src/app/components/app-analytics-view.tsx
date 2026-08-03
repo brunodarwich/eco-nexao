@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Button } from '@econexao/ui/button'
 import { FeedbackState } from '@econexao/ui/feedback-state'
+import { AdminDataState, AdminRequestError } from './admin-data-state'
 
 export interface RouteApiSummary {
   slug: string
@@ -41,6 +43,7 @@ interface AppAnalyticsViewProps {
   selectedRouteSlug: string
   catalogItems: CatalogItemApi[]
   isLoading: boolean
+  requestError?: AdminRequestError | null
   onSelectRoute: (slug: string) => void
   onOpenEditorModal: (itemToEdit?: CatalogItemApi | null) => void
 }
@@ -51,9 +54,35 @@ export function AppAnalyticsView({
   selectedRouteSlug,
   catalogItems,
   isLoading,
+  requestError,
   onSelectRoute,
   onOpenEditorModal,
 }: AppAnalyticsViewProps) {
+  const [liveEventsTotal, setLiveEventsTotal] = useState<number | null>(null)
+
+  useEffect(() => {
+    async function fetchLiveAnalytics() {
+      try {
+        const res = await fetch(
+          `/api/admin/analytics/summary?region_slug=${regionSlug}`,
+        )
+        if (res.ok) {
+          const data = await res.json()
+          if (typeof data.total_events === 'number') {
+            setLiveEventsTotal(data.total_events)
+          }
+        }
+      } catch {
+        // Fallback silencioso para estado local
+      }
+    }
+    fetchLiveAnalytics()
+  }, [regionSlug])
+
+  if (requestError) {
+    return <AdminDataState error={requestError} />
+  }
+
   if (isLoading) {
     return (
       <FeedbackState
@@ -115,9 +144,11 @@ export function AppAnalyticsView({
         <article className="kpi-card">
           <span className="kpi-icon">📲</span>
           <div className="kpi-body">
-            <span className="kpi-label">Modo Offline</span>
-            <span className="kpi-value">Pronto</span>
-            <span className="kpi-subtext">pacotes sincronizados</span>
+            <span className="kpi-label">Eventos Medidos</span>
+            <span className="kpi-value">
+              {liveEventsTotal !== null ? liveEventsTotal : 'Ativos'}
+            </span>
+            <span className="kpi-subtext">métricas LGPD consentidas</span>
           </div>
         </article>
       </div>

@@ -3,7 +3,10 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import * as fs from 'fs'
 import * as path from 'path'
 import { PoiEditorModal } from './poi-editor-modal'
-import { OperationalDashboard } from '../operational-dashboard'
+import {
+  getDashboardTabIndex,
+  OperationalDashboard,
+} from '../operational-dashboard'
 
 describe('Suíte de Acessibilidade WCAG 2.2 AA & Navegação por Teclado', () => {
   describe('1. Fechamento de Modal com a Tecla Escape & Atributos ARIA (PoiEditorModal)', () => {
@@ -86,6 +89,14 @@ describe('Suíte de Acessibilidade WCAG 2.2 AA & Navegação por Teclado', () =>
   })
 
   describe('3. Visualização de Foco & Conformidade WCAG 2.2 AA (CSS & HTML)', () => {
+    it('calcula a navegação de tabs para setas, Home e End', () => {
+      expect(getDashboardTabIndex(0, 'ArrowRight', 5)).toBe(1)
+      expect(getDashboardTabIndex(0, 'ArrowLeft', 5)).toBe(4)
+      expect(getDashboardTabIndex(2, 'Home', 5)).toBe(0)
+      expect(getDashboardTabIndex(2, 'End', 5)).toBe(4)
+      expect(getDashboardTabIndex(2, 'Enter', 5)).toBeNull()
+    })
+
     it('contém regras CSS de indicação visual de foco (:focus-visible)', () => {
       const cssPath = path.resolve(__dirname, '../styles.css')
       const cssContent = fs.readFileSync(cssPath, 'utf-8')

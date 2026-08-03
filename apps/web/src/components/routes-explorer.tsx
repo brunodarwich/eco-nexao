@@ -236,7 +236,11 @@ export function RoutesExplorer({
         </div>
       </section>
 
-      <section className="route-filters" aria-labelledby="filters-title">
+      <section
+        aria-labelledby="filters-title"
+        className="route-filters"
+        role="search"
+      >
         <div className="route-filters__heading">
           <h2 id="filters-title">Encontre sua próxima rota</h2>
           <span aria-live="polite">

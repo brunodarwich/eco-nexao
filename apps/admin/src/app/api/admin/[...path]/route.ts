@@ -8,6 +8,8 @@ const allowedPaths = new Set([
   'audit-logs',
   'imports/validate',
   'imports/commit',
+  'reports',
+  'analytics/summary',
 ])
 
 interface RouteContext {
@@ -23,7 +25,14 @@ function apiBaseUrl() {
 async function proxyRequest(request: Request, context: RouteContext) {
   const { path: segments } = await context.params
   const path = segments.join('/')
-  if (!allowedPaths.has(path)) {
+
+  // Suporte a caminhos dinâmicos como 'reports/<id>'
+  const isAllowed =
+    allowedPaths.has(path) ||
+    allowedPaths.has(segments[0]) ||
+    (segments.length >= 2 && allowedPaths.has(`${segments[0]}/${segments[1]}`))
+
+  if (!isAllowed) {
     return Response.json(
       { message: 'Recurso não encontrado.' },
       { status: 404 },
@@ -41,7 +50,10 @@ async function proxyRequest(request: Request, context: RouteContext) {
 
   try {
     const upstream = await fetch(target, {
-      body: request.method === 'GET' ? undefined : await request.arrayBuffer(),
+      body:
+        request.method === 'GET' || request.method === 'HEAD'
+          ? undefined
+          : await request.arrayBuffer(),
       cache: 'no-store',
       headers,
       method: request.method,
@@ -79,5 +91,17 @@ export function GET(request: Request, context: RouteContext) {
 }
 
 export function POST(request: Request, context: RouteContext) {
+  return proxyRequest(request, context)
+}
+
+export function PATCH(request: Request, context: RouteContext) {
+  return proxyRequest(request, context)
+}
+
+export function PUT(request: Request, context: RouteContext) {
+  return proxyRequest(request, context)
+}
+
+export function DELETE(request: Request, context: RouteContext) {
   return proxyRequest(request, context)
 }

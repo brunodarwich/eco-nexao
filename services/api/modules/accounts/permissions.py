@@ -22,6 +22,10 @@ class AdminAction(StrEnum):
     MANAGE_USERS = "manage_users"
     VIEW_AUDIT = "view_audit"
     DISCOVER_EXTERNAL = "discover_external"
+    LIST_REPORTS = "list_reports"
+    MODERATE_REPORT = "moderate_report"
+    VIEW_REPORTER_CONTACT = "view_reporter_contact"
+    VIEW_ANALYTICS = "view_analytics"
 
 
 ROLE_GROUP_PREFIX = "econexao:"
@@ -33,6 +37,7 @@ ROLE_ACTIONS: dict[AdminRole, frozenset[AdminAction]] = {
             AdminAction.IMPORT_CSV,
             AdminAction.VIEW_AGGREGATES,
             AdminAction.DISCOVER_EXTERNAL,
+            AdminAction.LIST_REPORTS,
         }
     ),
     AdminRole.REVIEWER: frozenset(
@@ -43,6 +48,9 @@ ROLE_ACTIONS: dict[AdminRole, frozenset[AdminAction]] = {
             AdminAction.VIEW_AGGREGATES,
             AdminAction.VIEW_AUDIT,
             AdminAction.DISCOVER_EXTERNAL,
+            AdminAction.LIST_REPORTS,
+            AdminAction.MODERATE_REPORT,
+            AdminAction.VIEW_REPORTER_CONTACT,
         }
     ),
     AdminRole.PUBLISHER: frozenset(
@@ -53,9 +61,18 @@ ROLE_ACTIONS: dict[AdminRole, frozenset[AdminAction]] = {
             AdminAction.PUBLISH,
             AdminAction.VIEW_AGGREGATES,
             AdminAction.VIEW_AUDIT,
+            AdminAction.LIST_REPORTS,
+            AdminAction.MODERATE_REPORT,
+            AdminAction.VIEW_REPORTER_CONTACT,
+            AdminAction.VIEW_ANALYTICS,
         }
     ),
-    AdminRole.ANALYST: frozenset({AdminAction.VIEW_AGGREGATES}),
+    AdminRole.ANALYST: frozenset(
+        {
+            AdminAction.VIEW_AGGREGATES,
+            AdminAction.VIEW_ANALYTICS,
+        }
+    ),
     AdminRole.ADMINISTRATOR: frozenset(AdminAction),
 }
 
@@ -120,6 +137,11 @@ def resolve_object_region(instance: Any) -> Any | None:
     route = getattr(instance, "route", None)
     if route is not None:
         return getattr(route, "region", None)
+    region_slug = getattr(instance, "region_slug", None)
+    if region_slug:
+        from modules.regions.models import Region
+
+        return Region.objects.filter(slug=region_slug).first()
     return None
 
 

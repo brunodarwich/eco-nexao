@@ -2,18 +2,24 @@
 
 import { FeedbackState } from '@econexao/ui/feedback-state'
 import { RouteApiSummary } from './app-analytics-view'
+import { AdminDataState, AdminRequestError } from './admin-data-state'
 
 interface RouteReadinessViewProps {
   regionSlug: string
   routes: RouteApiSummary[]
   isLoading: boolean
+  requestError?: AdminRequestError | null
 }
 
 export function RouteReadinessView({
   regionSlug,
   routes,
   isLoading,
+  requestError,
 }: RouteReadinessViewProps) {
+  if (requestError) {
+    return <AdminDataState error={requestError} />
+  }
   if (isLoading) {
     return (
       <FeedbackState

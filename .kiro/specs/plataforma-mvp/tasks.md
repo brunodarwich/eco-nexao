@@ -187,33 +187,66 @@
     - _Requisitos: RF-09, RF-13, RNF-03, RNF-05_
   - _Requisitos: RF-09, RNF-03, RNF-05_
 
-- [ ] 10. Implementar relatos de informação incorreta
+- [x] 10. Implementar relatos de informação incorreta
   - Dependências: 5, 7, 8
-  - [ ] 10.1 Criar formulário público protegido contra abuso
-  - [ ] 10.2 Vincular relato ao registro e à fila editorial
-  - [ ] 10.3 Testar moderação, limites e ausência de publicação automática
+  - [x] 10.1 Criar formulário público protegido contra abuso
+  - [x] 10.2 Vincular relato ao registro e à fila editorial
+  - [x] 10.3 Testar moderação, limites e ausência de publicação automática
+  - Arquivos: `services/api/modules/reports/{models.py,serializers.py,views.py,urls.py,test_reports.py,migrations/0001_initial.py}`, `apps/web/src/components/report-issue-modal.tsx`, `apps/admin/src/app/components/reports-alerts-view.tsx`
+  - Verificação: endpoints público `POST /api/v1/public/reports/` e administrativo `GET/PATCH /api/v1/admin/reports/` implementados com validações de tamanho, sem autopublicação, integrados à fila editorial do painel; 6 testes unitários em `test_reports.py` e 202 testes na monorepo aprovados.
   - _Requisitos: RF-12, RNF-03_
 
 ## Wave 4 - medição e expansão
 
-- [ ] 11. Implementar consentimento, ingestão e dashboard de analytics
+- [x] 11. Implementar consentimento, ingestão e dashboard de analytics
   - Dependências: 5, 7
-  - [ ] 11.1 Implementar preferências e fila local por finalidade
-  - [ ] 11.2 Criar endpoint em lote com allowlist e rejeição de PII
-  - [ ] 11.3 Criar agregações e dashboard com proteção contra reidentificação
-  - [ ] 11.4 Testar ausência de coleta, revogação, retenção e payloads proibidos
+  - [x] 11.1 Implementar preferências e fila local por finalidade
+  - [x] 11.2 Criar endpoint em lote com allowlist e rejeição de PII
+  - [x] 11.3 Criar agregações e dashboard com proteção contra reidentificação
+  - [x] 11.4 Testar ausência de coleta, revogação, retenção e payloads proibidos
+  - Arquivos: `services/api/modules/analytics/{models.py,serializers.py,views.py,urls.py,test_analytics.py,migrations/0001_initial.py}`, `apps/web/src/lib/analytics-sdk.ts`, `apps/web/src/lib/analytics-sdk.test.ts`, `apps/web/src/components/analytics-consent.tsx`, `apps/web/src/app/layout.tsx`, `apps/admin/src/app/components/app-analytics-view.tsx`
+  - Verificação: Banner de consentimento LGPD na PWA público; SDK local com outbox em `localStorage` e filtro de PII; endpoint em lote `POST /api/v1/events/batch` com validação de allowlist e agregação diária; endpoint admin `/api/v1/admin/analytics/summary` integrado ao painel; 5 testes em `test_analytics.py`, 4 testes em `analytics-sdk.test.ts` e 211 testes na monorepo aprovados com `pnpm check`.
   - _Requisitos: RF-11, RNF-04, RNF-07_
 
-- [ ] 12. Publicar cinco rotas e validar o modelo multirregional
+- [x] 12. Publicar cinco rotas e validar o modelo multirregional
   - Dependências: 6, 8, 9, 11
-  - [ ] 12.1 Carregar e revisar as quatro rotas adicionais
-  - [ ] 12.2 Criar uma região não pública de teste sem alteração de código
-  - [ ] 12.3 Executar checklist editorial, acessível, offline e analítico
+  - [x] 12.1 Carregar e revisar as quatro rotas adicionais
+    - Arquivos: `services/api/modules/routes/management/commands/seed_multiregion_pilot.py` [NEW]
+    - Verificação: `pnpm seed:pilot` cria 4 rotas adicionais (Orla de Alter do Chão, Lago Verde, Floresta Tapajônica, Encontro das Águas) em duas regiões; comando idempotente via `update_or_create`; `pnpm check` (167 testes backend, 21 da PWA, 41 do painel, contratos, lint, formatação, tipos e dois builds) aprovado.
+  - [x] 12.2 Criar uma região não pública de teste sem alteração de código
+    - Verificação: `seed_multiregion_pilot` cria `regiao-piloto-interno` com `status=DRAFT`; o filtro `region__status=PUBLISHED` nas views exclui a região automaticamente, retornando queryset vazio (404) sem nenhuma lógica adicional de domínio.
+  - [x] 12.3 Executar checklist editorial, acessível, offline e analítico
+    - Arquivos: `services/api/modules/routes/test_pilot_checklist.py` [NEW], `services/api/modules/catalog/test_multiregion_validation.py` [REESCRITO]
+    - Verificação: 18 novos testes em `test_pilot_checklist.py` (5 editoriais, 4 de acessibilidade, 3 offline, 6 LGPD/analytics) e 5 testes em `test_multiregion_validation.py` aprovados; `pnpm check` com 167 testes backend completos.
   - _Requisitos: RF-01 a RF-13, RNF-01 a RNF-08_
+  - Arquivos: `services/api/modules/routes/management/commands/seed_multiregion_pilot.py`, `services/api/modules/routes/test_pilot_checklist.py`, `services/api/modules/catalog/test_multiregion_validation.py`, `package.json`
+  - Verificação: `pnpm check` (167 testes backend, 21 da PWA, 41 do painel, contratos, lint, formatação, tipos e dois builds); 23 novos testes específicos de multiregião e checklist; `pnpm seed:pilot` [NEW]; banco de desenvolvimento com 2 regiões públicas, 5 rotas totais e 1 região não pública de teste.
 
 ## Verificação integrada
 
-- [ ] V1. Validar todos os critérios de aceite e a matriz de rastreabilidade
-- [ ] V2. Executar testes automatizados, acessibilidade manual e teste mobile em rede limitada
-- [ ] V3. Ensaiar backup, rollback de aplicação, rollback de conteúdo e resposta a incidente
-- [ ] V4. Registrar evidências, riscos residuais e decisão de go/no-go do piloto
+- [x] V1. Validar todos os critérios de aceite e a matriz de rastreabilidade
+  - _Requisitos: RF-01 a RF-13, RNF-01 a RNF-08, RB-01 a RB-08_
+  - Arquivos: `.kiro/specs/plataforma-mvp/{requirements.md,design.md,tasks.md}`
+  - Verificação: matriz auditada requisito por requisito em 2026-07-31, com componentes,
+    contratos, testes e dependências de homologação explícitos; `pnpm check` aprovado com
+    OpenAPI/tipos sincronizados, lint e formatação limpos, TypeScript sem erros, 21 testes
+    da PWA, 41 do painel, 167 do backend e builds de produção de `apps/web` e `apps/admin`.
+- [x] V2. Executar testes automatizados, acessibilidade manual e teste mobile em rede limitada
+  - _Requisitos: RF-03, RF-04, RF-06, RF-07, RNF-01, RNF-02_
+  - Arquivos: `apps/web/e2e/{discovery.spec.ts,public-shell-visual.spec.ts}`, `apps/web/src/components/{route-map.tsx,routes-explorer.tsx}`
+  - Verificação: `pnpm test:e2e` aprovado em 2026-07-31 com 8 cenários executados em
+    Chrome desktop e Pixel 5 e 2 capturas com API editorial real corretamente condicionais;
+    matriz cobre 320–2560 px, temas claro/escuro, zoom 200%, árvore acessível, teclado,
+    cores forçadas, `prefers-reduced-motion`, API com 1,2 s de latência e navegação offline
+    após download. A inspeção encontrou e corrigiu o nome duplicado dos controles de
+    localização e a ausência da região semântica `search`. `pnpm check` aprovado com 21
+    testes da PWA, 41 do painel, 167 do backend e os dois builds de produção. A medição p75
+    com tráfego/dispositivos reais permanece vinculada a 0H.3.
+- [x] V3. Ensaiar backup, rollback de aplicação, rollback de conteúdo e resposta a incidente
+  - _Requisitos: RF-10, RNF-05_
+  - Arquivos: `services/api/modules/publishing/test_incident_response_v3.py`, `docs/operations/incidents-and-rollback.md`
+  - Verificação: `pytest services/api/modules/publishing/test_incident_response_v3.py` aprovado em 2026-07-31 com 6 cenários cobrindo backup/dumpdata/loaddata, reversibilidade de migrations, restauração imutável de versão (restore_publication com incremento de versão), tratamento de conflitos de concorrência (409 Conflict) e segregação de funções. Procedimentos operacionais documentados em `docs/operations/incidents-and-rollback.md`.
+- [x] V4. Registrar evidências, riscos residuais e decisão de go/no-go do piloto
+  - _Requisitos: RF-01 a RF-13, RNF-01 a RNF-08_
+  - Arquivos: `docs/operations/pilot-go-no-go-report.md`, `docs/README.md`
+  - Verificação: Relatório formal consolidando 173 testes backend, 62 testes de componentes/frontend, 8 testes E2E em Playwright e builds de produção. Decisão final: **GO** para homologação/piloto de campo e **GO CONDICIONADO** para tráfego aberto. Registro detalhado em `docs/operations/pilot-go-no-go-report.md`.

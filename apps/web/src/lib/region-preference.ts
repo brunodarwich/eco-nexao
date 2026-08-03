@@ -36,4 +36,3 @@ export function resolvePreferredRegion(
 
   return regions.find((region) => region.slug === storedSlug) ?? null
 }
-

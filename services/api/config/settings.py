@@ -7,6 +7,9 @@ from .database import build_database_config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 OSGEO4W_BIN = Path(r"C:\OSGeo4W\bin")
+if os.name == "nt" and OSGEO4W_BIN.is_dir():
+    os.environ["PATH"] = str(OSGEO4W_BIN) + os.pathsep + os.environ.get("PATH", "")
+
 OSGEO4W_DLL_DIRECTORY = (
     os.add_dll_directory(str(OSGEO4W_BIN)) if os.name == "nt" and OSGEO4W_BIN.is_dir() else None
 )
@@ -16,6 +19,9 @@ GDAL_LIBRARY_PATH = os.getenv("GDAL_LIBRARY_PATH") or next(
 )
 GEOS_LIBRARY_PATH = os.getenv("GEOS_LIBRARY_PATH") or (
     "geos_c.dll" if (OSGEO4W_BIN / "geos_c.dll").is_file() else None
+)
+SPATIALITE_LIBRARY_PATH = os.getenv("SPATIALITE_LIBRARY_PATH") or (
+    "mod_spatialite.dll" if (OSGEO4W_BIN / "mod_spatialite.dll").is_file() else None
 )
 OSGEO4W_GDAL_HANDLE = (
     CDLL(GDAL_LIBRARY_PATH)
@@ -57,12 +63,14 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "modules.accounts",
+    "modules.analytics",
     "modules.audit",
     "modules.catalog",
     "modules.health",
     "modules.imports",
     "modules.publishing",
     "modules.regions",
+    "modules.reports",
     "modules.routes",
 ]
 
@@ -137,6 +145,8 @@ REST_FRAMEWORK = {
             "10/hour",
         ),
         "csv_validation": os.getenv("CSV_VALIDATION_RATE", "30/hour"),
+        "public_reports": os.getenv("PUBLIC_REPORTS_RATE", "5/hour"),
+        "analytics_batch": os.getenv("ANALYTICS_BATCH_RATE", "60/hour"),
     },
 }
 

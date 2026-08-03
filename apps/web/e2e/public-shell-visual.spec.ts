@@ -108,3 +108,62 @@ test('recompõe descoberta entre mobile e ultrawide sem overflow', async ({
     }
   }
 })
+
+test('permanece operável por teclado em rede móvel limitada e movimento reduzido', async ({
+  page,
+}) => {
+  await page.emulateMedia({
+    colorScheme: 'light',
+    forcedColors: 'active',
+    reducedMotion: 'reduce',
+  })
+  await page.route('**/api/public/regions', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1_200))
+    await route.fulfill({
+      body: JSON.stringify(regions),
+      contentType: 'application/json',
+    })
+  })
+  await page.route(
+    '**/api/public/regions/territorio-publicado/routes',
+    async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1_200))
+      await route.fulfill({
+        body: JSON.stringify(routes),
+        contentType: 'application/json',
+      })
+    },
+  )
+
+  await page.goto('/?trocar=true')
+  await expect(
+    page.getByRole('heading', { name: 'Carregando regiões' }),
+  ).toBeVisible()
+
+  const regionLink = page.getByRole('link', { name: 'Explorar esta região' })
+  await expect(regionLink).toBeVisible()
+  await regionLink.focus()
+  await expect(regionLink).toBeFocused()
+  await page.keyboard.press('Enter')
+
+  await expect(page).toHaveURL(/\/territorio-publicado\/rotas$/)
+  await expect(
+    page.getByRole('heading', { name: 'Explore o território' }),
+  ).toBeVisible()
+  await expect(page.getByRole('search')).toBeVisible()
+  await expect(
+    page.getByRole('button', {
+      name: 'Favoritar Caminho das águas entre comunidades e floresta',
+    }),
+  ).toBeVisible()
+  expect(
+    await page.evaluate(
+      () => document.body.scrollWidth <= document.body.clientWidth + 1,
+    ),
+  ).toBe(true)
+  expect(
+    await page.evaluate(
+      () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    ),
+  ).toBe(true)
+})

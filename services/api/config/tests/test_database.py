@@ -8,7 +8,7 @@ from config.database import build_database_config
 def test_uses_sqlite_when_database_url_is_absent(tmp_path: Path):
     config = build_database_config(None, "postgresql", tmp_path)
 
-    assert config["ENGINE"] == "django.db.backends.sqlite3"
+    assert config["ENGINE"] == "django.contrib.gis.db.backends.spatialite"
     assert config["NAME"] == str(tmp_path / "db.sqlite3")
 
 

@@ -13,6 +13,7 @@
     "dev:api": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py runserver",
     "dev:dashboard": "uv --cache-dir .uv-cache run --project tools/development_dashboard streamlit run tools/development_dashboard/streamlit_app.py",
     "seed:pindobal": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py seed_pindobal_demo --publish-demo",
+    "seed:pilot": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py seed_multiregion_pilot --publish-demo",
     "discover:pindobal": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py search_google_places_pindobal",
     "contracts:schema": "uv --cache-dir .uv-cache run --project services/api python services/api/manage.py spectacular --file packages/contracts/openapi/schema.yaml --validate",
     "contracts:generate": "pnpm contracts:schema && pnpm --filter @econexao/contracts generate && pnpm exec prettier --write packages/contracts/src/api.ts",

@@ -5,6 +5,7 @@ import dj_database_url
 SUPPORTED_DATABASE_ENGINES = {
     "postgresql": "django.db.backends.postgresql",
     "postgis": "django.contrib.gis.db.backends.postgis",
+    "spatialite": "django.contrib.gis.db.backends.spatialite",
 }
 
 
@@ -14,7 +15,9 @@ def build_database_config(
     base_dir: Path,
 ) -> dict:
     if not database_url:
-        return dj_database_url.parse(f"sqlite:///{base_dir / 'db.sqlite3'}")
+        config = dj_database_url.parse(f"sqlite:///{base_dir / 'db.sqlite3'}")
+        config["ENGINE"] = "django.contrib.gis.db.backends.spatialite"
+        return config
 
     try:
         engine = SUPPORTED_DATABASE_ENGINES[database_engine]

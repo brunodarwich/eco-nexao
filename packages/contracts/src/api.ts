@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+  '/api/v1/admin/analytics/summary': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * @description Visão resumida de analytics agregada para o painel administrativo.
+     *     Protegido por autenticação e livre de identificadores individuais.
+     */
+    get: operations['api_v1_admin_analytics_summary_retrieve']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/admin/audit-logs': {
     parameters: {
       query?: never
@@ -244,6 +264,60 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/admin/reports/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description Lista relatos da comunidade para moderação e triagem. */
+    get: operations['api_v1_admin_reports_list']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/admin/reports/{report_id}/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    /** @description Atualiza o status de moderação e nota técnica de um relato. */
+    patch: operations['api_v1_admin_reports_partial_update']
+    trace?: never
+  }
+  '/api/v1/events/batch': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * @description Ingestão pública em lote de eventos de analytics pseudonimizados.
+     *     Aplica allowlist estrita e rejeição de dados pessoais ou coordenadas.
+     */
+    post: operations['api_v1_events_batch_create']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/health': {
     parameters: {
       query?: never
@@ -254,6 +328,26 @@ export interface paths {
     get: operations['api_v1_health_retrieve']
     put?: never
     post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/public/reports/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * @description Criação pública de relato de informação incorreta.
+     *     Protegido contra autopublicação e abusos de tamanho.
+     */
+    post: operations['api_v1_public_reports_create']
     delete?: never
     options?: never
     head?: never
@@ -368,6 +462,7 @@ export interface components {
      *     * `publication.restore` - Restauração
      *     * `external.discovery` - Descoberta externa
      *     * `import.commit` - Confirmação de importação
+     *     * `report.moderate` - Moderação de relato
      * @enum {string}
      */
     ActionEnum:
@@ -378,6 +473,7 @@ export interface components {
       | 'publication.restore'
       | 'external.discovery'
       | 'import.commit'
+      | 'report.moderate'
     /**
      * @description * `business` - Empresa
      *     * `individual_provider` - Prestador individual
@@ -399,6 +495,32 @@ export interface components {
       actions: string[]
       region_slugs: string[]
     }
+    AdminReport: {
+      /** Format: uuid */
+      readonly id: string
+      readonly report_type: components['schemas']['ReportTypeEnum']
+      readonly target_type: components['schemas']['TargetTypeEf3Enum']
+      /** Format: uuid */
+      readonly target_id: string | null
+      readonly target_slug: string
+      readonly region_slug: string
+      readonly description: string
+      readonly reporter_contact: string
+      status?: components['schemas']['AdminReportStatusEnum']
+      moderation_note?: string
+      /** Format: date-time */
+      readonly created_at: string
+      /** Format: date-time */
+      readonly updated_at: string
+    }
+    /**
+     * @description * `pending` - Pendente
+     *     * `reviewed` - Revisado
+     *     * `rejected` - Rejeitado
+     *     * `actioned` - Ação Concluída
+     * @enum {string}
+     */
+    AdminReportStatusEnum: 'pending' | 'reviewed' | 'rejected' | 'actioned'
     Alert: {
       /** Format: uuid */
       readonly id: string
@@ -420,6 +542,36 @@ export interface components {
      * @enum {string}
      */
     AlertSeverityEnum: 'info' | 'warning' | 'critical'
+    AnalyticsBatch: {
+      events: components['schemas']['AnalyticsEventInput'][]
+    }
+    AnalyticsEventInput: {
+      /** Format: uuid */
+      readonly event_id: string
+      event_name: string
+      schema_version?: string
+      /** Format: date-time */
+      occurred_at: string
+      /** Format: uuid */
+      anonymous_id: string
+      /** Format: uuid */
+      session_id?: string | null
+      /** Format: uuid */
+      consent_id?: string | null
+      consent_version?: string
+      app_version?: string
+      screen_name?: string
+      region_id?: string
+      route_id?: string
+      actor_id?: string
+      stage_id?: string
+      source?: string
+      campaign_id?: string
+      device_class?: string
+      network_class?: string
+      display_mode?: string
+      properties?: unknown
+    }
     AuditEvent: {
       /** Format: uuid */
       readonly id: string
@@ -521,7 +673,7 @@ export interface components {
      */
     ChannelTypeEnum: 'phone' | 'whatsapp' | 'email' | 'website' | 'instagram'
     CreateEditorialRevision: {
-      target_type: components['schemas']['TargetTypeEnum']
+      target_type: components['schemas']['TargetTypeFdcEnum']
       /** Format: uuid */
       target_id: string
       /** Format: uuid */
@@ -543,7 +695,7 @@ export interface components {
       readonly id: string
       /** Format: uuid */
       readonly region_id: string
-      readonly target_type: components['schemas']['TargetTypeEnum']
+      readonly target_type: components['schemas']['TargetTypeFdcEnum']
       /** Format: uuid */
       readonly target_id: string
       readonly sequence: number
@@ -652,6 +804,24 @@ export interface components {
      * @enum {string}
      */
     PartnershipTypeEnum: 'editorial' | 'partner' | 'sponsored'
+    PatchedAdminReport: {
+      /** Format: uuid */
+      readonly id?: string
+      readonly report_type?: components['schemas']['ReportTypeEnum']
+      readonly target_type?: components['schemas']['TargetTypeEf3Enum']
+      /** Format: uuid */
+      readonly target_id?: string | null
+      readonly target_slug?: string
+      readonly region_slug?: string
+      readonly description?: string
+      readonly reporter_contact?: string
+      status?: components['schemas']['AdminReportStatusEnum']
+      moderation_note?: string
+      /** Format: date-time */
+      readonly created_at?: string
+      /** Format: date-time */
+      readonly updated_at?: string
+    }
     PatchedUpdateEditorialRevision: {
       snapshot?: unknown
       lock_version?: number
@@ -692,6 +862,26 @@ export interface components {
       /** Format: date-time */
       verified_at?: string | null
     }
+    PublicReportCreate: {
+      /** Format: uuid */
+      readonly id: string
+      report_type?: components['schemas']['ReportTypeEnum']
+      target_type?: components['schemas']['TargetTypeEf3Enum']
+      /** Format: uuid */
+      target_id?: string | null
+      target_slug?: string
+      region_slug?: string
+      description: string
+      reporter_contact?: string
+      /** Format: date-time */
+      readonly created_at: string
+    }
+    PublicReportCreatedResponse: {
+      /** Format: uuid */
+      id: string
+      message: string
+      status: string
+    }
     PublicationVersion: {
       /** Format: uuid */
       readonly id: string
@@ -701,7 +891,7 @@ export interface components {
       readonly restored_from_id: string | null
       /** Format: uuid */
       readonly region_id: string
-      readonly target_type: components['schemas']['TargetTypeEnum']
+      readonly target_type: components['schemas']['TargetTypeFdcEnum']
       /** Format: uuid */
       readonly target_id: string
       readonly version: number
@@ -741,6 +931,20 @@ export interface components {
       /** Format: date-time */
       readonly updated_at: string
     }
+    /**
+     * @description * `incorrect_info` - Informação Incorreta
+     *     * `closed_location` - Local Fechado ou Inacessível
+     *     * `wrong_contact` - Contato Desatualizado
+     *     * `safety_warning` - Alerta de Segurança
+     *     * `other` - Outro Assunto
+     * @enum {string}
+     */
+    ReportTypeEnum:
+      | 'incorrect_info'
+      | 'closed_location'
+      | 'wrong_contact'
+      | 'safety_warning'
+      | 'other'
     RestorePublicationVersion: {
       expected_current_version: number
       reason: string
@@ -875,12 +1079,19 @@ export interface components {
      */
     StageTypeEnum: 'start' | 'stop' | 'experience' | 'support' | 'end'
     /**
+     * @description * `route` - Rota
+     *     * `actor` - Ator / Ponto Local
+     *     * `general` - Geral
+     * @enum {string}
+     */
+    TargetTypeEf3Enum: 'route' | 'actor' | 'general'
+    /**
      * @description * `region` - Região
      *     * `route` - Rota
      *     * `actor` - Ator
      * @enum {string}
      */
-    TargetTypeEnum: 'region' | 'route' | 'actor'
+    TargetTypeFdcEnum: 'region' | 'route' | 'actor'
   }
   responses: never
   parameters: never
@@ -890,6 +1101,54 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
+  api_v1_admin_analytics_summary_retrieve: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            total_events?: number
+            aggregates?: {
+              date?: string
+              event_name?: string
+              region_slug?: string
+              route_slug?: string
+              count?: number
+            }[]
+          }
+        }
+      }
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+    }
+  }
   listAdminAuditEvents: {
     parameters: {
       query?: {
@@ -901,6 +1160,7 @@ export interface operations {
          *     * `publication.restore` - Restauração
          *     * `external.discovery` - Descoberta externa
          *     * `import.commit` - Confirmação de importação
+         *     * `report.moderate` - Moderação de relato
          */
         action?:
           | 'auth.login'
@@ -910,6 +1170,7 @@ export interface operations {
           | 'publication.restore'
           | 'external.discovery'
           | 'import.commit'
+          | 'report.moderate'
         limit?: number
         offset?: number
         region_id?: string
@@ -1455,6 +1716,160 @@ export interface operations {
       }
     }
   }
+  api_v1_admin_reports_list: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AdminReport'][]
+        }
+      }
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+    }
+  }
+  api_v1_admin_reports_partial_update: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        report_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedAdminReport']
+        'application/x-www-form-urlencoded': components['schemas']['PatchedAdminReport']
+        'multipart/form-data': components['schemas']['PatchedAdminReport']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AdminReport']
+        }
+      }
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            [key: string]: unknown
+          }
+        }
+      }
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+    }
+  }
+  api_v1_events_batch_create: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AnalyticsBatch']
+        'application/x-www-form-urlencoded': components['schemas']['AnalyticsBatch']
+        'multipart/form-data': components['schemas']['AnalyticsBatch']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            received?: number
+            status?: string
+          }
+        }
+      }
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            [key: string]: unknown
+          }
+        }
+      }
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+    }
+  }
   api_v1_health_retrieve: {
     parameters: {
       query?: never
@@ -1471,6 +1886,51 @@ export interface operations {
         content: {
           'application/json': {
             status?: string
+          }
+        }
+      }
+    }
+  }
+  api_v1_public_reports_create: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PublicReportCreate']
+        'application/x-www-form-urlencoded': components['schemas']['PublicReportCreate']
+        'multipart/form-data': components['schemas']['PublicReportCreate']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PublicReportCreatedResponse']
+        }
+      }
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            [key: string]: unknown
+          }
+        }
+      }
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
           }
         }
       }

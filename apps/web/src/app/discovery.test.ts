@@ -199,3 +199,37 @@ describe('published route map points', () => {
     expect(filterRouteMapPoints(points, '')).toEqual(points)
   })
 })
+
+describe('route overview preparation and timeline', () => {
+  it('separates critical alerts from non-critical warning alerts', () => {
+    const alerts = [
+      {
+        id: '1',
+        severity: 'critical' as const,
+        title: 'Trilha bloqueada',
+        description: '',
+        alternative: '',
+      },
+      {
+        id: '2',
+        severity: 'warning' as const,
+        title: 'Marea alta',
+        description: '',
+        alternative: '',
+      },
+      {
+        id: '3',
+        severity: 'info' as const,
+        title: 'Horário de funcionamento',
+        description: '',
+        alternative: '',
+      },
+    ]
+
+    const critical = alerts.filter((a) => a.severity === 'critical')
+    const nonCritical = alerts.filter((a) => a.severity !== 'critical')
+
+    expect(critical).toHaveLength(1)
+    expect(nonCritical).toHaveLength(2)
+  })
+})

@@ -73,7 +73,7 @@ describe('OperationalDashboard Integration Suite', () => {
     const markup = renderToStaticMarkup(<OperationalDashboard />)
 
     expect(markup).toContain('Território Operacional:')
-    expect(markup).toContain('Santarém - Alter do Chão')
+    expect(markup).not.toContain('Santarém - Alter do Chão')
     expect(markup).toContain('Multirregional:')
     expect(markup).toContain('Eixo Ativo')
 
@@ -88,7 +88,7 @@ describe('OperationalDashboard Integration Suite', () => {
     const markup = renderToStaticMarkup(<OperationalDashboard />)
 
     expect(markup).toContain('Foco de Atenção Operacional')
-    expect(markup).toContain('Operação Estável em Santarém - Alter do Chão')
+    expect(markup).toContain('Operação Estável em Nenhuma região selecionada')
   })
 
   describe('Operação 1: Edição manual de um ponto existente via PoiEditorModal', () => {

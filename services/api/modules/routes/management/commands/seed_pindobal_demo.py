@@ -32,46 +32,55 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         status = EditorialStatus.PUBLISHED if options["publish_demo"] else EditorialStatus.DRAFT
+        existing_region = Region.objects.filter(slug="santarem-alter-do-chao").first()
+        region_defaults = {
+            "public_name": "Santarém e Alter do Chão",
+            "short_description": (
+                "Território demonstrativo para validar a experiência multirregional."
+            ),
+            "center_point": Point(-54.97478, -2.55997, srid=4326),
+            "timezone": "America/Fortaleza",
+        }
+        if not existing_region or existing_region.status != EditorialStatus.PUBLISHED:
+            region_defaults["status"] = status
+            region_defaults["published_version"] = 1 if options["publish_demo"] else None
+
         region, _ = Region.objects.update_or_create(
             slug="santarem-alter-do-chao",
-            defaults={
-                "public_name": "Santarém e Alter do Chão",
-                "short_description": (
-                    "Território demonstrativo para validar a experiência multirregional."
-                ),
-                "center_point": Point(-54.97478, -2.55997, srid=4326),
-                "timezone": "America/Fortaleza",
-                "status": status,
-                "published_version": 1 if options["publish_demo"] else None,
-            },
+            defaults=region_defaults,
         )
+
+        existing_route = Route.objects.filter(region=region, slug="pindobal").first()
+        route_defaults = {
+            "public_name": "Rota demonstrativa de Pindobal",
+            "short_promise": "Prepare uma visita consciente com informações em validação.",
+            "description": (
+                "Conteúdo demonstrativo criado para testar a jornada da ECOnexão. "
+                "Não use estas informações como orientação operacional sem confirmação local."
+            ),
+            "duration_minutes": 240,
+            "difficulty": Route.Difficulty.EASY,
+            "estimated_cost_min": Decimal("40.00"),
+            "estimated_cost_max": Decimal("120.00"),
+            "transport_modes": ["car", "walk"],
+            "preparation_content": (
+                "Confirme previamente acesso, transporte de retorno, funcionamento dos "
+                "serviços e condições do rio. Leve água, proteção solar, repelente e "
+                "meios de pagamento alternativos. Todo este conteúdo é demonstrativo."
+            ),
+            "accessibility_content": (
+                "Condições de acessibilidade ainda não verificadas em campo. "
+                "Confirme diretamente antes da visita."
+            ),
+            "offline_enabled": True,
+        }
+        if not existing_route or existing_route.editorial_status != EditorialStatus.PUBLISHED:
+            route_defaults["editorial_status"] = status
+
         route, _ = Route.objects.update_or_create(
             region=region,
             slug="pindobal",
-            defaults={
-                "public_name": "Rota demonstrativa de Pindobal",
-                "short_promise": "Prepare uma visita consciente com informações em validação.",
-                "description": (
-                    "Conteúdo demonstrativo criado para testar a jornada da ECOnexão. "
-                    "Não use estas informações como orientação operacional sem confirmação local."
-                ),
-                "duration_minutes": 240,
-                "difficulty": Route.Difficulty.EASY,
-                "estimated_cost_min": Decimal("40.00"),
-                "estimated_cost_max": Decimal("120.00"),
-                "transport_modes": ["car", "walk"],
-                "preparation_content": (
-                    "Confirme previamente acesso, transporte de retorno, funcionamento dos "
-                    "serviços e condições do rio. Leve água, proteção solar, repelente e "
-                    "meios de pagamento alternativos. Todo este conteúdo é demonstrativo."
-                ),
-                "accessibility_content": (
-                    "Condições de acessibilidade ainda não verificadas em campo. "
-                    "Confirme diretamente antes da visita."
-                ),
-                "offline_enabled": True,
-                "editorial_status": status,
-            },
+            defaults=route_defaults,
         )
 
         stage_definitions = [

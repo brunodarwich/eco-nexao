@@ -24,7 +24,9 @@ export const themeBootstrapScript = String.raw`
   const theme =
     storedTheme === 'light' || storedTheme === 'dark'
       ? storedTheme
-      : 'light';
+      : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
   const root = document.documentElement;
   root.dataset.theme = theme;
   root.style.colorScheme = theme;

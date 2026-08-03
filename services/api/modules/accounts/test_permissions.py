@@ -61,6 +61,7 @@ EXPECTED_ACTIONS = {
         AdminAction.IMPORT_CSV,
         AdminAction.VIEW_AGGREGATES,
         AdminAction.DISCOVER_EXTERNAL,
+        AdminAction.LIST_REPORTS,
     },
     AdminRole.REVIEWER: {
         AdminAction.EDIT_CONTENT,
@@ -69,6 +70,9 @@ EXPECTED_ACTIONS = {
         AdminAction.VIEW_AGGREGATES,
         AdminAction.VIEW_AUDIT,
         AdminAction.DISCOVER_EXTERNAL,
+        AdminAction.LIST_REPORTS,
+        AdminAction.MODERATE_REPORT,
+        AdminAction.VIEW_REPORTER_CONTACT,
     },
     AdminRole.PUBLISHER: {
         AdminAction.EDIT_CONTENT,
@@ -77,8 +81,15 @@ EXPECTED_ACTIONS = {
         AdminAction.PUBLISH,
         AdminAction.VIEW_AGGREGATES,
         AdminAction.VIEW_AUDIT,
+        AdminAction.LIST_REPORTS,
+        AdminAction.MODERATE_REPORT,
+        AdminAction.VIEW_REPORTER_CONTACT,
+        AdminAction.VIEW_ANALYTICS,
     },
-    AdminRole.ANALYST: {AdminAction.VIEW_AGGREGATES},
+    AdminRole.ANALYST: {
+        AdminAction.VIEW_AGGREGATES,
+        AdminAction.VIEW_ANALYTICS,
+    },
     AdminRole.ADMINISTRATOR: set(AdminAction),
 }
 

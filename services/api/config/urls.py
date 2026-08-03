@@ -10,6 +10,8 @@ urlpatterns = [
     path("api/v1/admin/discovery/", include("modules.catalog.admin_urls")),
     path("api/v1/admin/imports/", include("modules.imports.urls")),
     path("api/v1/admin/editorial/", include("modules.publishing.urls")),
+    path("api/v1/", include("modules.reports.urls")),
+    path("api/v1/", include("modules.analytics.urls")),
     path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/v1/docs/",

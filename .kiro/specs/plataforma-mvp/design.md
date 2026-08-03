@@ -529,12 +529,35 @@ O frontend usa `pnpm` workspaces. O backend declara dependências e versão de P
 
 ## Matriz de rastreabilidade
 
-| Requisitos | Componentes | Verificação principal |
-|---|---|---|
-| RF-01 a RF-06 | PWA, regions, routes, catalog | testes de API, componentes e E2E |
-| RF-07, RNF-01 | UI tokens, bootstrap de tema | contraste, unitários e E2E |
-| RF-08 a RF-10 | painel, publishing, imports, audit | permissões, integração e E2E |
-| RF-11, RNF-04 | cliente de eventos, analytics | allowlist, consentimento e retenção |
-| RF-12 | reports, painel | API, moderação e vínculo |
-| RF-13 | catalog, comando de descoberta | unidade com transporte falso e prévia manual atribuída |
-| RNF-02 a RNF-08 | infraestrutura e todos os módulos | CI, testes de carga, segurança e operação |
+Auditoria integrada em 2026-07-31. “Coberto” significa que todos os critérios EARS do
+requisito possuem implementação e ao menos uma evidência automatizada ou operacional
+identificada. Ensaios manuais e operacionais que pertencem a V2 e V3 continuam indicados
+explicitamente e não são antecipados por esta matriz.
+
+| Requisito | Componentes/contratos | Evidência principal | Estado em V1 |
+|---|---|---|---|
+| RF-01 | `regions`, resolução e preferência de região na PWA | `discovery.test.ts`, `discovery.spec.ts`, `test_multiregion_validation.py` | coberto |
+| RF-02 | listagem, busca, filtros e URLs de rotas | `discovery.test.ts`, `discovery.spec.ts`, `test_public_contract.py` | coberto |
+| RF-03 | detalhe, abas, preparação, alertas e alternativa textual | `route-experience.tsx`, `discovery.test.ts`, `test_pilot_checklist.py`, E2E visual | coberto |
+| RF-04 | MapLibre, localização sob demanda, pins, agrupamento, filtros e lista | `route-map.tsx`, `discovery.test.ts`, `test_public_contract.py`, `test_pilot_checklist.py` | coberto |
+| RF-05 | catálogo, atores, contatos autorizados e intenções de contato | `discovery.test.ts`, `test_public_contract.py`, `test_ideal_privacy_lgpd.py`, E2E público | coberto |
+| RF-06 | favoritos e pacote offline versionado | `offline.test.ts`, `test_pilot_checklist.py`, E2E público | coberto |
+| RF-07 | tokens, bootstrap, persistência e equivalência de temas | `page.test.ts`, `public-shell-visual.spec.ts`, `route-detail-visual.spec.ts` | coberto; matriz visual e movimento reduzido aprovados em V2 |
+| RF-08 | sessão, CSRF, papéis, revisão e publicação | `test_auth.py`, `test_permissions.py`, `test_workflow.py`, `test_publication.py` | coberto |
+| RF-09 | validação, preview e commit idempotente de CSV | `test_catalog_csv.py`, `test_views.py`, `test_commit.py`, `test_pindobal_inventory.py` | coberto |
+| RF-10 | versões imutáveis, restauração, segregação e auditoria | `test_publication.py`, `test_audit.py`, `test_ideal_privacy_lgpd.py` | coberto; ensaio operacional em V3 |
+| RF-11 | consentimento local, ingestão allowlisted e agregação | `analytics-sdk.test.ts`, `test_analytics.py`, `test_pilot_checklist.py` | coberto |
+| RF-12 | relato público, moderação e fila editorial | `test_reports.py`, `reports-alerts-view.test.tsx` | coberto |
+| RF-13 | descoberta Google efêmera, mínima, atribuída e desligável | `test_google_places.py`, `test_admin_discovery.py`, `test_pilot_checklist.py` | coberto; ativação externa depende de 0H.4 |
+| RNF-01 | landmarks, teclado, foco, contraste e alternativa ao mapa | testes WCAG do painel, E2E visual e checklist do piloto | coberto; árvore acessível, teclado, zoom 200% e cores forçadas aprovados em V2 |
+| RNF-02 | orçamento de LCP, INP e CLS e composição responsiva | budgets aprovados, E2E visual e evidências da adequação visual | coberto em ambiente controlado e rede limitada; p75 real depende de 0H.3 |
+| RNF-03 | sessão, autorização, CSRF, rate limit, arquivos e auditoria | suítes `accounts`, `imports`, `reports`, `audit` e RLS | coberto |
+| RNF-04 | minimização, consentimento, retenção e contatos autorizados | `analytics-sdk.test.ts`, `test_analytics.py`, `test_ideal_privacy_lgpd.py` | coberto; governança formal depende de 0H.1/0H.4 |
+| RNF-05 | atomicidade, idempotência e ausência de estado parcial | `test_publication.py`, `test_commit.py`, `test_catalog_csv.py` | coberto; restauração operacional em V3 |
+| RNF-06 | domínio e consultas sem região fixa | `test_domain_models.py`, `test_domain_integrity.py`, `test_multiregion_validation.py` | coberto |
+| RNF-07 | IDs técnicos e auditoria sem PII | `test_audit.py`, `test_ideal_privacy_lgpd.py`, `test_analytics.py` | coberto |
+| RNF-08 | credencial server-side, limites, atribuição e modo degradado | `test_google_places.py`, `test_admin_discovery.py`; documentação de curadoria | coberto no produto; contratação/ativação depende de 0H.2/0H.4 |
+
+As regras RB-01 a RB-08 são exercitadas pelos testes de integridade de domínio,
+publicação, importação, auditoria e descoberta externa. A pendência de homologação `0H`
+não representa critério sem implementação, mas impede a decisão de go/no-go de V4.

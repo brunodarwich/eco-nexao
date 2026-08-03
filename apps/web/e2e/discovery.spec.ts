@@ -251,7 +251,7 @@ test('seleciona região, filtra rotas e abre uma URL compartilhável', async ({
     }),
   ).toBeVisible()
   await expect(
-    page.getByRole('heading', { name: 'Alertas ativos' }),
+    page.getByRole('heading', { name: 'Faixa de atenção' }),
   ).toBeVisible()
   await expect(
     page.getByRole('heading', { name: 'Prepare-se para visitar' }),
@@ -262,7 +262,7 @@ test('seleciona região, filtra rotas e abre uma URL compartilhável', async ({
   expect(
     await page.evaluate(() => {
       const preparation = document.querySelector('#preparation-title')
-      const alerts = document.querySelector('#alerts-title')
+      const alerts = document.querySelector('#non-critical-alerts-title')
       return Boolean(
         preparation &&
         alerts &&
@@ -300,7 +300,9 @@ test('seleciona região, filtra rotas e abre uma URL compartilhável', async ({
       () => document.body.scrollWidth <= document.body.clientWidth + 1,
     ),
   ).toBe(true)
-  await page.getByRole('button', { name: 'Usar minha localização' }).click()
+  await page
+    .getByRole('button', { exact: true, name: 'Usar minha localização' })
+    .click()
   await expect(
     page.getByRole('heading', {
       name: 'Usar sua posição somente neste aparelho?',
@@ -346,7 +348,7 @@ test('seleciona região, filtra rotas e abre uma URL compartilhável', async ({
   await page.context().setOffline(true)
   await page.goto('/tapajos/rotas/trilha-da-mata')
   await expect(
-    page.getByRole('heading', { name: 'Alertas ativos' }),
+    page.getByRole('heading', { name: 'Faixa de atenção' }),
   ).toBeVisible()
   await page.goto('/tapajos/rotas/trilha-da-mata/catalogo')
   await expect(

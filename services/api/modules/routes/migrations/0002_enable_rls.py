@@ -30,6 +30,16 @@ def rls_statements(action: str) -> str:
     )
 
 
+def apply_rls(apps, schema_editor):
+    if schema_editor.connection.vendor == "postgresql":
+        schema_editor.execute(rls_statements("ENABLE"))
+
+
+def revert_rls(apps, schema_editor):
+    if schema_editor.connection.vendor == "postgresql":
+        schema_editor.execute(rls_statements("DISABLE"))
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("auth", "0012_alter_user_first_name_max_length"),
@@ -39,8 +49,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql=rls_statements("ENABLE"),
-            reverse_sql=rls_statements("DISABLE"),
+        migrations.RunPython(
+            code=apply_rls,
+            reverse_code=revert_rls,
         ),
     ]

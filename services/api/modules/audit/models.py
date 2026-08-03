@@ -22,6 +22,7 @@ class AuditEvent(models.Model):
         PUBLICATION_RESTORE = "publication.restore", "Restauração"
         EXTERNAL_DISCOVERY = "external.discovery", "Descoberta externa"
         IMPORT_COMMIT = "import.commit", "Confirmação de importação"
+        REPORT_MODERATE = "report.moderate", "Moderação de relato"
 
     class Result(models.TextChoices):
         SUCCESS = "success", "Sucesso"

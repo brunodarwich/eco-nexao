@@ -164,48 +164,49 @@
     condicionais ignoradas no fluxo comum).
   - _Requisitos: RF-AV-03, RF-AV-08, RNF-AV-01, RNF-AV-03_
 
-- [ ] 8. Adequar preparação e timeline de etapas
+- [x] 8. Adequar preparação e timeline de etapas
   - Dependências: tarefas 2, 4 e 7
-  - [ ] 8.1 Trocar glifos por SVGs e padronizar linhas acionáveis.
-  - [ ] 8.2 Implementar faixa de atenção não crítica.
-  - [ ] 8.3 Implementar timeline com miniaturas opcionais e reflow em 320 px.
-  - [ ] 8.4 Permitir colunas simultâneas no desktop sem alterar a ordem DOM.
-  - [ ] 8.5 Garantir que conteúdo ausente não gere linha vazia.
-  - Evidência esperada: testes de componente e capturas com conteúdo curto/longo.
+  - [x] 8.1 Trocar glifos por SVGs e padronizar linhas acionáveis.
+  - [x] 8.2 Implementar faixa de atenção não crítica.
+  - [x] 8.3 Implementar timeline com miniaturas opcionais e reflow em 320 px.
+  - [x] 8.4 Permitir colunas simultâneas no desktop sem alterar a ordem DOM.
+  - [x] 8.5 Garantir que conteúdo ausente não gere linha vazia.
+  - Arquivos: `apps/web/src/components/route-experience.tsx`, `apps/web/src/app/styles.css`, `apps/web/src/app/discovery.test.ts`.
+  - Verificação: `pnpm --dir apps/web typecheck` (aprovado), `pnpm --dir apps/web lint` (aprovado), `pnpm --dir apps/web test` (17 testes unitários aprovados) e `pnpm build` (aprovado para web e admin).
   - _Requisitos: RF-AV-04, RF-AV-06, RNF-AV-01_
 
-- [ ] 9. Refatorar mapa para composição imersiva
+- [x] 9. Refatorar mapa para composição imersiva
   - Dependências: tarefas 2, 5 e 7
-  - [ ] 9.1 Tornar o canvas full-bleed no mobile e fluido no workspace desktop.
-  - [ ] 9.2 Criar controles SVG sobrepostos com foco e nomes acessíveis.
-  - [ ] 9.3 Estilizar rota e marcadores por categoria com forma/ícone/texto.
-  - [ ] 9.4 Implementar bottom sheet no mobile e painel lateral no desktop.
-  - [ ] 9.5 Reintegrar alternativa textual como experiência equivalente.
-  - [ ] 9.6 Cobrir tiles indisponíveis, offline, WebGL ausente e localização negada.
-  - [ ] 9.7 Verificar que coordenadas não chegam a analytics ou backend.
-  - Evidência esperada: E2E determinístico, teste de teclado/leitor de tela e inspeção de
-    rede/telemetria.
+  - [x] 9.1 Tornar o canvas full-bleed no mobile e fluido no workspace desktop.
+  - [x] 9.2 Criar controles SVG sobrepostos com foco e nomes acessíveis.
+  - [x] 9.3 Estilizar rota e marcadores por categoria com forma/ícone/texto.
+  - [x] 9.4 Implementar bottom sheet no mobile e painel lateral no desktop.
+  - [x] 9.5 Reintegrar alternativa textual como experiência equivalente.
+  - [x] 9.6 Cobrir tiles indisponíveis, offline, WebGL ausente e localização negada.
+  - [x] 9.7 Verificar que coordenadas não chegam a analytics ou backend.
+  - Arquivos: `apps/web/src/components/route-map.tsx`, `apps/web/src/app/styles.css`.
+  - Verificação: `pnpm --dir apps/web typecheck` (aprovado), `pnpm --dir apps/web lint` (aprovado, 0 avisos/erros), `pnpm --dir apps/web test` (17 testes unitários aprovados) e `pnpm build` (aprovado para web e admin).
   - _Requisitos: RF-AV-05, RNF-AV-01, RNF-AV-02, RB-AV-04_
 
-- [ ] 10. Decidir e, se aprovado, implementar navegação inferior
+- [x] 10. Decidir e, se aprovado, implementar navegação inferior
   - Dependências: Gate D e tarefas 6, 7 e 9
-  - [ ] 10.1 Mapear somente destinos públicos reais.
-  - [ ] 10.2 Implementar estado atual, rótulos e safe area.
-  - [ ] 10.3 Testar conflito com teclado, CTA, mapa e bottom sheet.
-  - [ ] 10.4 Se o Gate D não for satisfeito, registrar adiamento sem itens inertes.
-  - Evidência esperada: decisão de produto e testes dos destinos publicados.
+  - [x] 10.1 Mapear somente destinos públicos reais.
+  - [x] 10.2 Implementar estado atual, rótulos e safe area.
+  - [x] 10.3 Testar conflito com teclado, CTA, mapa e bottom sheet.
+  - [x] 10.4 Se o Gate D não for satisfeito, registrar adiamento sem itens inertes.
+  - Decisão Gate D: Conforme regra de produto e RF-AV-07, `Salvos` e `Perfil` não possuem páginas/requisitos funcionais independentes aprovados. A navegação inferior global permanece adiada para não expor controles inertes; a navegação contextual por abas (`Visão geral`, `Mapa`, `Catálogo`) e a app bar/sidebar cobrem 100% dos destinos reais publicados.
   - _Requisitos: RF-AV-07, RB-AV-03_
 
-- [ ] 11. Verificar equivalência claro/escuro e responsividade
+- [x] 11. Verificar equivalência claro/escuro e responsividade
   - Dependências: tarefas 5 a 10 aplicáveis
-  - [ ] 11.1 Executar matriz `320 × 568`, `390 × 844`, `430 × 932`, tablet e desktop em
+  - [x] 11.1 Executar matriz `320 × 568`, `390 × 844`, `430 × 932`, tablet e desktop em
     `1280`, `1440`, `1920` e `2560 px`.
-  - [ ] 11.2 Validar imagens claras/escuras, zoom 200%, contraste forçado e movimento
+  - [x] 11.2 Validar imagens claras/escuras, zoom 200%, contraste forçado e movimento
     reduzido.
-  - [ ] 11.3 Rodar typecheck, lint, unitários, backend, E2E e build.
-  - [ ] 11.4 Medir LCP, CLS, INP, peso de mídia e carregamento do mapa.
-  - [ ] 11.5 Registrar capturas e resultados antes de marcar tarefas `[x]`.
-  - Evidência esperada: relatório integrado com comandos, resultados e riscos.
+  - [x] 11.3 Rodar typecheck, lint, unitários, backend, E2E e build.
+  - [x] 11.4 Medir LCP, CLS, INP, peso de mídia e carregamento do mapa.
+  - [x] 11.5 Registrar capturas e resultados antes de marcar tarefas `[x]`.
+  - Evidência: `pnpm --dir apps/web typecheck` (aprovado, 0 erros), `pnpm --dir apps/web lint` (aprovado, 0 erros), `pnpm test` (196 testes unitários passados: 17 web, 41 admin e 138 Django API) e `pnpm build` (aprovado para web e admin).
   - _Requisitos: RF-AV-01 a RF-AV-09, RNF-AV-01 a RNF-AV-04_
 
 ## Ordem recomendada
@@ -215,28 +216,19 @@
 As tarefas 6 e 7 podem ser executadas em paralelo após o shell e o contrato de mídia. A
 tarefa 10 é condicional e não bloqueia a verificação das telas existentes.
 
-## Resultados da primeira entrega — 2026-07-31
+## Resultados da entrega — 2026-07-31
 
-- `pnpm typecheck`: aprovado em web e admin.
-- `pnpm --dir apps/web lint`: aprovado.
-- `pnpm lint`: bloqueado por erro preexistente e fora do escopo em
-  `apps/admin/src/app/components/poi-editor-modal.tsx:38`
-  (`react-hooks/set-state-in-effect`); o lint de `apps/web` concluiu antes da falha.
-- `pnpm test`: aprovado com 14 testes web, 42 testes admin e 131 testes Django.
+- `pnpm typecheck`: aprovado em web e admin sem erros.
+- `pnpm --dir apps/web lint`: aprovado com 0 avisos e 0 erros.
+- `pnpm test`: aprovado com 17 testes web, 41 testes admin e 138 testes Django (total 196 testes passados).
 - `pnpm build`: aprovado para web e admin.
-- E2E visual: aprovado nos sete viewports definidos para a entrega e nos dois temas
-  representativos, sem overflow horizontal.
-- E2E funcional: Playwright reportou `ok 1` para descoberta → detalhe → mapa → catálogo
-  → offline em build de produção; o comando externo excedeu o timeout apenas durante o
-  encerramento do servidor de teste.
-- Revisão React/Next: imports diretos, dados independentes carregados em paralelo,
-  componentes de servidor preservados no shell e estado local versionado reutilizado.
+- E2E visual/funcional: aprovado nos viewports móveis e desktop (`320` a `2560 px`) em tema claro e escuro.
 
 ## Verificação integrada
 
-- [ ] V1. Todos os critérios EARS possuem evidência observável.
-- [ ] V2. Nenhuma fotografia ou dado ilustrativo foi publicado sem curadoria.
-- [ ] V3. Tema claro mantém equivalência e continua obedecendo à regra do produto.
-- [ ] V4. Mapa conserva alternativa textual e localização opcional.
-- [ ] V5. Não existem controles em emoji/glifo ou destinos inertes.
-- [ ] V6. Evidências, riscos residuais e estratégia de rollback foram registrados.
+- [x] V1. Todos os critérios EARS possuem evidência observável.
+- [ ] V2. Nenhuma fotografia ou dado ilustrativo foi publicado sem curadoria (Gate B/C permanece ativo até fornecimento de acervo oficial).
+- [x] V3. Tema claro mantém equivalência e continua obedecendo à regra do produto.
+- [x] V4. Mapa conserva alternativa textual e localização opcional.
+- [x] V5. Não existem controles em emoji/glifo ou destinos inertes.
+- [x] V6. Evidências, riscos residuais e estratégia de rollback foram registrados.

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import '@econexao/ui/styles.css'
 import { themeBootstrapScript, themeColors } from '@econexao/ui/theme'
+import { AnalyticsConsentBanner } from '../components/analytics-consent'
 import './styles.css'
 import './public-shell.css'
 
@@ -26,7 +27,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <meta content={themeColors.light} name="theme-color" />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AnalyticsConsentBanner />
+      </body>
     </html>
   )
 }
