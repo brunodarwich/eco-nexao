@@ -12,7 +12,9 @@ describe('admin data states', () => {
     [0, 'unavailable', 'Serviço indisponível'],
   ])('maps %s to the explicit admin state', (status, state, title) => {
     expect(classifyAdminResponse(status)).toBe(state)
-    expect(renderToStaticMarkup(<AdminDataState error={state as never} />)).toContain(title)
+    expect(
+      renderToStaticMarkup(<AdminDataState error={state as never} />),
+    ).toContain(title)
   })
 
   it('offers recovery without replacing the error with an empty state', () => {

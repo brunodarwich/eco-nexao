@@ -10,6 +10,7 @@ dependencies = [
   "drf-spectacular>=0.28,<0.29",
   "psycopg[binary]>=3.2,<4",
   "python-dotenv>=1.1,<2",
+  "gunicorn>=23.0,<24",
 ]
 
 [dependency-groups]

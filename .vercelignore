@@ -1,0 +1,11 @@
+.venv/
+.uv-cache/
+.pytest_cache/
+.ruff_cache/
+.pytest-tmp*/
+.runtime/
+.pnpm-store/
+services/api/.venv/
+services/api/db.sqlite3
+tools/
+*.log

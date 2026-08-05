@@ -114,7 +114,7 @@ def test_analytics_serializer_recursive_pii_and_free_text_rejected():
 @pytest.mark.django_db
 def test_public_event_batch_atomic_aggregation_db():
     api_client = APIClient()
-    today = timezone.now().date()
+    today = timezone.localdate()
     anonymous_id = str(uuid.uuid4())
 
     payload = {

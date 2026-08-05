@@ -39,7 +39,9 @@ export function ReportsAlertsView({ regionSlug }: ReportsAlertsViewProps) {
   const [reports, setReports] = useState<PublicReportItem[]>([])
   const [events, setEvents] = useState<AuditEventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [requestError, setRequestError] = useState<AdminRequestError | null>(null)
+  const [requestError, setRequestError] = useState<AdminRequestError | null>(
+    null,
+  )
 
   useEffect(() => {
     let active = true

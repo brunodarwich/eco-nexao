@@ -1,0 +1,33 @@
+{
+  "current_commit": "b8846c676ae8f1556c458c459c225aeb7c3c21cb",
+  "working_tree_has_uncommitted_changes": true,
+  "generated_at": "2026-08-04T17:52:59.0755983-03:00",
+  "scanned_scope": ["apps", "packages", "services", "tools", "spec", "data", "outputs", "docs", "assets", "root configuration"],
+  "excluded_directories": ["vendor", "build", "dist", "cache", "coverage", ".next", ".git", "node_modules", "__pycache__", ".pytest_cache", ".turbo", "out"],
+  "fingerprint_algorithm": "SHA-256 over sorted tracked path + NUL + current file bytes + NUL, grouped by first path segment",
+  "module_fingerprints": {
+    ".agents": "3fb1b11f1f5cacf420a1eeb9b2c6a51111ac5cb0e18326ce249166896a8c4e9c",
+    ".editorconfig": "f5501a4071c5c91f0ebdbdddb9e7f405fdc1d1bf4b5954976980ded5c3f559b3",
+    ".env.example": "fcc6e87d57728a6474f250dc811439d85b2283ef23637d0b9531756327063888",
+    ".github": "4dc8a215aa9a593beb9f7e8ba0bd18fb1458ce52213e09094fe8dfc35b4bb2e7",
+    ".gitignore": "85c87851fe4d5a56191c50e768d8321503e9b3193602b704132f0dfe9a2c003c",
+    ".kiro": "f9c1398a6240698b3dfc558006da1a4de602255577c7153033f9965631d723a9",
+    ".prettierignore": "061c1e2f1ed8c8c8a66377cd384185f4fed2b267a7cfe332643fe7e3a8635eca",
+    ".prettierrc.json": "8c0a185bcaebda9c94d90a3bea4fa783deb12533bda745d71551b9c5f88af33f",
+    "AGENTS.md": "434753662f7c213953ce3beaa52a3d0a250e505d462acac2bca961a71be8618b",
+    "apps": "540d6b3d8ace7786144a073abeac189eefe96ca48242a1eb78df392e31b7edce",
+    "assets": "5d736915d6000cd7a96e7a361384409a128bf07faf7aec319fbae84d304ff8e5",
+    "data": "f16f4b5cda15947da39bfc0c02f85e771938c4d9185af01e0841e55f494e1085",
+    "docs": "e5217727df6db6191c5e498e96953f5d88186ca7f90ac21b749ab1069a1caab9",
+    "outputs": "7f8e98e124cad4fb14509fa4b66663aeb25943885db4f625ebe3dd11027c9b89",
+    "package.json": "6d0d6964ff52a727b08f24f66dda87593a309f1c5b5202b2a7d44e873dfd00af",
+    "packages": "af4d0cf61e0f06196b37c69f50f412457cbc7960c93551862c465303a76745ed",
+    "pnpm-lock.yaml": "596868fe5b6751e1c18eac55b8f1506908dca0a3fb9b2ec415052c38f8ff5e44",
+    "pnpm-workspace.yaml": "669b7b2b416a7d2b7557cb3d0e3fb5e3e7b9f32c8793b808c06abe5208e551a5",
+    "README.md": "ae7da16d51cab46c2f7aeb17ab9b511daf30e200fcd9660f08e97a5dd8bbd657",
+    "services": "91eaf460b18a0e3b4d5761a08c563f46e47bf0e6ed57e5fbfdbfe535e60bc642",
+    "spec": "66ee3b15e046bf81be9d970e665c123256e05ff6b922464fb53f4cd8c81e2669",
+    "start-all.ps1": "3662e2e6aae0e0519ded36c7e5923c0690daf3346b80f487fa2d97180ad4baea",
+    "tools": "cda736bddd3e7526cd1ec94caf100775330a64efd002428a4691b105c003ce25"
+  }
+}

@@ -1,13 +1,13 @@
 import type { NextConfig } from 'next'
 
 const apiBaseUrl = (
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL ?? 'https://fifty-donkeys-vanish.loca.lt/api/v1'
 ).replace(/\/$/, '')
-const isE2EBuild = process.env.NEXT_E2E_BUILD === 'true'
+const isStandalone = process.env.NEXT_STANDALONE === 'true'
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR ?? '.next',
-  output: isE2EBuild ? undefined : 'standalone',
+  output: isStandalone ? 'standalone' : undefined,
   transpilePackages: ['@econexao/contracts', '@econexao/ui'],
   async rewrites() {
     return [

@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: econexao-api
+    env: docker
+    dockerfilePath: ./services/api/Dockerfile
+    dockerContext: ./services/api
+    plan: free
+    region: oregon
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_ENGINE
+        value: "postgis"
+      - key: DATABASE_URL
+        sync: false
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com,.vercel.app"
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com,https://*.vercel.app"
+      - key: DJANGO_SECURE_COOKIES
+        value: "true"

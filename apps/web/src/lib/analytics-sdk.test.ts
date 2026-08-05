@@ -42,10 +42,7 @@ describe('Analytics SDK and LGPD Consent', () => {
   })
 
   it('clears queue when user chooses necessary only', () => {
-    memoryStorage.setItem(
-      QUEUE_KEY,
-      JSON.stringify([{ event_name: 'test' }]),
-    )
+    memoryStorage.setItem(QUEUE_KEY, JSON.stringify([{ event_name: 'test' }]))
     setConsentChoice('necessary')
     expect(getConsentChoice()).toBe('necessary')
     expect(memoryStorage.getItem(QUEUE_KEY)).toBeNull()
