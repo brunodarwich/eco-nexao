@@ -54,6 +54,15 @@ AUDIT_METADATA_FIELDS: dict[str, dict[str, type]] = {
         "previous_status": str,
         "new_status": str,
     },
+    AuditEvent.Action.SUPPORT_POINT_CREATE: {
+        "location_id": str,
+        "contact_ids": list,
+        "route_link_ids": list,
+        "contact_count": int,
+        "route_link_count": int,
+        "idempotency_key": str,
+        "idempotent_replay": bool,
+    },
 }
 
 
@@ -74,6 +83,11 @@ def _validate_metadata(action: str, metadata: Mapping[str, Any]) -> dict[str, An
             valid_type = isinstance(value, expected_type)
         if not valid_type:
             raise ValidationError({"metadata": [f"O campo {key} possui tipo inválido."]})
+        if expected_type is list:
+            if len(value) > 20 or any(
+                not isinstance(item, str) or not item or len(item) > 128 for item in value
+            ):
+                raise ValidationError({"metadata": [f"O campo {key} possui itens inválidos."]})
         if isinstance(value, str) and (not value or len(value) > 128):
             raise ValidationError({"metadata": [f"O campo {key} possui tamanho inválido."]})
         normalized[key] = value

@@ -3,7 +3,8 @@
 import { Button } from '@econexao/ui/button'
 import { FeedbackState } from '@econexao/ui/feedback-state'
 import { FormEvent, useState } from 'react'
-import { RouteApiSummary } from './app-analytics-view'
+import { adminMutation, getAdminErrorMessage } from '../../lib/admin-api'
+import type { RouteApiSummary } from '../../lib/dashboard-routes'
 
 interface CsvIssue {
   severity: 'error' | 'warning'
@@ -47,11 +48,6 @@ interface CsvCommitResponse {
   committed_at: string
 }
 
-interface ApiError {
-  message?: string
-  field_errors?: Record<string, string[]>
-}
-
 interface CsvImportViewProps {
   regionSlug: string
   routes: RouteApiSummary[]
@@ -59,24 +55,6 @@ interface CsvImportViewProps {
   onNavigateTab: (
     tab: 'analytics' | 'routes' | 'reports' | 'import' | 'discovery',
   ) => void
-}
-
-async function readJson<T>(response: Response): Promise<T> {
-  return (await response.json()) as T
-}
-
-async function csrfToken() {
-  const response = await fetch('/api/admin/auth/csrf', {
-    cache: 'no-store',
-    credentials: 'include',
-  })
-  if (!response.ok) throw new Error('Não foi possível iniciar a sessão segura.')
-  return (await readJson<{ csrf_token: string }>(response)).csrf_token
-}
-
-function apiErrorMessage(payload: ApiError, fallback: string) {
-  const fieldMessage = Object.values(payload.field_errors ?? {}).flat()[0]
-  return payload.message || fieldMessage || fallback
 }
 
 export function CsvImportView({
@@ -105,29 +83,21 @@ export function CsvImportView({
     setValidation(null)
     setIsProcessing(true)
     try {
-      const token = await csrfToken()
       const body = new FormData()
       body.set('file', file)
-      const response = await fetch('/api/admin/imports/validate', {
-        body,
-        credentials: 'include',
-        headers: { 'X-CSRFToken': token },
-        method: 'POST',
-      })
-      const payload = await readJson<CsvValidationResponse & ApiError>(response)
-      if (!response.ok) {
-        throw new Error(
-          apiErrorMessage(payload, 'A planilha não pôde ser validada.'),
-        )
-      }
+      const payload = await adminMutation<CsvValidationResponse>(
+        'imports/validate',
+        {
+          body,
+          method: 'POST',
+        },
+      )
       setValidation(payload)
       setIdempotencyKey(crypto.randomUUID())
       setStep(2)
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : 'A planilha não pôde ser validada.',
+        getAdminErrorMessage(caught, 'A planilha não pôde ser validada.'),
       )
     } finally {
       setIsProcessing(false)
@@ -139,31 +109,20 @@ export function CsvImportView({
     setError('')
     setIsProcessing(true)
     try {
-      const token = await csrfToken()
       const body = new FormData()
       body.set('file', file)
       body.set('sha256', validation.sha256)
       body.set('idempotency_key', idempotencyKey || crypto.randomUUID())
       body.set('confirmed', 'true')
-      const response = await fetch('/api/admin/imports/commit', {
+      const payload = await adminMutation<CsvCommitResponse>('imports/commit', {
         body,
-        credentials: 'include',
-        headers: { 'X-CSRFToken': token },
         method: 'POST',
       })
-      const payload = await readJson<CsvCommitResponse & ApiError>(response)
-      if (!response.ok) {
-        throw new Error(
-          apiErrorMessage(payload, 'Os rascunhos não puderam ser gravados.'),
-        )
-      }
       setCommit(payload)
       setStep(4)
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Os rascunhos não puderam ser gravados.',
+        getAdminErrorMessage(caught, 'Os rascunhos não puderam ser gravados.'),
       )
     } finally {
       setIsProcessing(false)

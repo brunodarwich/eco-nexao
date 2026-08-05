@@ -4,8 +4,8 @@ from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
-from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -85,7 +85,18 @@ class LoginView(APIView):
         operation_id="loginAdmin",
         tags=["Admin auth"],
         request=LoginRequestSerializer,
-        responses={200: SessionResponseSerializer},
+        responses={
+            200: SessionResponseSerializer,
+            401: inline_serializer(
+                name="LoginError401",
+                fields={
+                    "code": serializers.CharField(),
+                    "message": serializers.CharField(),
+                    "field_errors": serializers.DictField(),
+                    "request_id": serializers.CharField(),
+                },
+            ),
+        },
     )
     def post(self, request: Request) -> Response:
         serializer = LoginRequestSerializer(data=request.data)

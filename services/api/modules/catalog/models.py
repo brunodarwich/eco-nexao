@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -163,13 +164,27 @@ class ContactChannel(UUIDTimeStampedModel):
         WEBSITE = "website", "Site"
         INSTAGRAM = "instagram", "Instagram"
 
+    class SourceType(models.TextChoices):
+        CONSOLIDATED_SHEET = "consolidated_sheet", "Planilha consolidada"
+        TOURISM_INVENTORY = "tourism_inventory", "Inventário turístico"
+        OTHER_PUBLIC = "other_public", "Outra fonte pública"
+        LEGACY = "legacy", "Registro legado"
+
     actor = models.ForeignKey(Actor, on_delete=models.CASCADE, related_name="contact_channels")
     channel_type = models.CharField(max_length=16, choices=ChannelType.choices)
     value_encrypted = models.TextField(blank=True)
     public_value = models.CharField(max_length=500, blank=True)
     is_public = models.BooleanField(default=False)
-    authorization_reference = models.CharField(max_length=200, blank=True)
+    source_type = models.CharField(max_length=32, choices=SourceType.choices)
+    source_reference = models.CharField(max_length=200, blank=True)
     verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="verified_contact_channels",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         constraints = [
@@ -179,8 +194,39 @@ class ContactChannel(UUIDTimeStampedModel):
             ),
             models.CheckConstraint(
                 condition=Q(is_public=False)
-                | (Q(public_value__gt="") & Q(authorization_reference__gt="")),
-                name="contact_public_requires_authorization",
+                | (Q(public_value__gt="") & Q(source_reference__gt="")),
+                name="contact_public_requires_provenance",
+            ),
+        ]
+
+
+class SupportPointIdempotencyRecord(UUIDTimeStampedModel):
+    idempotency_key = models.UUIDField(unique=True, editable=False)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="support_point_idempotency_records",
+    )
+    region = models.ForeignKey(
+        "regions.Region",
+        on_delete=models.PROTECT,
+        related_name="support_point_idempotency_records",
+    )
+    actor = models.OneToOneField(
+        Actor,
+        on_delete=models.PROTECT,
+        related_name="support_point_idempotency_record",
+    )
+    request_fingerprint = models.CharField(max_length=64)
+    response_payload = models.JSONField()
+    expires_at = models.DateTimeField(db_index=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+        indexes = [
+            models.Index(
+                fields=("created_by", "region", "expires_at"),
+                name="support_idem_owner_exp_idx",
             ),
         ]
 

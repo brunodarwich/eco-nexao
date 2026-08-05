@@ -31,6 +31,7 @@ import {
 } from '@/lib/public-api'
 import { RouteMap } from './route-map'
 import { RouteFavoriteButton, RouteLocalActions } from './route-local-actions'
+import { trackEvent } from '@/lib/analytics-sdk'
 
 type RouteTab = 'overview' | 'map' | 'catalog'
 
@@ -552,6 +553,13 @@ function RouteCatalog({
                             key={`${contact.channel_type}-${contact.public_value}`}
                             rel={opensNewTab ? 'noreferrer' : undefined}
                             target={opensNewTab ? '_blank' : undefined}
+                            onClick={() =>
+                              void trackEvent('contact_opened', {
+                                region_id: route.region_slug,
+                                route_id: route.slug,
+                                actor_id: actor.id,
+                              })
+                            }
                           >
                             {contactLabels[contact.channel_type]}
                           </a>
@@ -563,6 +571,13 @@ function RouteCatalog({
                           href={directions}
                           rel="noreferrer"
                           target="_blank"
+                          onClick={() =>
+                            void trackEvent('contact_opened', {
+                              region_id: route.region_slug,
+                              route_id: route.slug,
+                              actor_id: actor.id,
+                            })
+                          }
                         >
                           Como chegar
                         </a>
@@ -615,6 +630,10 @@ export function RouteExperience({
       .then(([routeDetail, routeCatalog]) => {
         setRoute(routeDetail)
         setCatalog(routeCatalog)
+        void trackEvent('route_opened', {
+          region_id: regionSlug,
+          route_id: routeSlug,
+        })
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return

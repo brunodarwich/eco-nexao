@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import '@econexao/ui/styles.css'
 import { themeBootstrapScript, themeColors } from '@econexao/ui/theme'
 import { AnalyticsConsentBanner } from '../components/analytics-consent'
+import { AnalyticsLifecycle } from '../components/analytics-lifecycle'
 import './styles.css'
 import './public-shell.css'
 
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <AnalyticsLifecycle />
         <AnalyticsConsentBanner />
       </body>
     </html>

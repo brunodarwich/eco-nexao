@@ -1,15 +1,11 @@
 import { FeedbackState } from '@econexao/ui/feedback-state'
+import {
+  classifyAdminResponse,
+  type AdminRequestError,
+} from '../../lib/admin-api'
 
-export type AdminRequestError =
-  'unauthorized' | 'forbidden' | 'rate-limited' | 'server-error' | 'unavailable'
-
-export function classifyAdminResponse(status: number): AdminRequestError {
-  if (status === 401) return 'unauthorized'
-  if (status === 403) return 'forbidden'
-  if (status === 429) return 'rate-limited'
-  if (status >= 500) return 'server-error'
-  return 'unavailable'
-}
+export { classifyAdminResponse }
+export type { AdminRequestError }
 
 export function AdminDataState({
   error,

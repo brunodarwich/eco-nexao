@@ -8,7 +8,8 @@
     "./feedback-state": "./src/feedback-state.tsx",
     "./styles.css": "./src/styles.css",
     "./theme": "./src/theme.ts",
-    "./theme-toggle": "./src/theme-toggle.tsx"
+    "./theme-toggle": "./src/theme-toggle.tsx",
+    "./use-modal-a11y": "./src/use-modal-a11y.ts"
   },
   "dependencies": {
     "lucide-react": "^1.28.0",

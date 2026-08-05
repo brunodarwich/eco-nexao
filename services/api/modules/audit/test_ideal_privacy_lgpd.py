@@ -38,15 +38,15 @@ def default_relations() -> CatalogRelationIndex:
 # --- 1. CONTACT CHANNEL LGPD COMPLIANCE & AUTHORIZATION ENFORCEMENT ---
 
 
-def test_contact_channel_public_requires_authorization_reference_constraint():
+def test_contact_channel_public_requires_provenance_constraint():
     constraints = {c.name: c for c in ContactChannel._meta.constraints}
 
     # Verify model level DB constraints for LGPD contact channel privacy
-    assert "contact_public_requires_authorization" in constraints
+    assert "contact_public_requires_provenance" in constraints
     assert "contact_public_channel_uniq" in constraints
 
-    auth_constraint = constraints["contact_public_requires_authorization"]
-    assert isinstance(auth_constraint, CheckConstraint)
+    provenance_constraint = constraints["contact_public_requires_provenance"]
+    assert isinstance(provenance_constraint, CheckConstraint)
 
     unique_constraint = constraints["contact_public_channel_uniq"]
     assert isinstance(unique_constraint, UniqueConstraint)
@@ -54,15 +54,16 @@ def test_contact_channel_public_requires_authorization_reference_constraint():
 
 
 def test_contact_channel_instance_privacy_model_contracts():
-    # Valid public contact requires authorization_reference and public_value
+    # Public contact carries provenance rather than inferred consent.
     public_contact = ContactChannel(
         channel_type=ContactChannel.ChannelType.WHATSAPP,
         public_value="+5593999990001",
         is_public=True,
-        authorization_reference="TERMO-LGPD-2026-001",
+        source_type=ContactChannel.SourceType.CONSOLIDATED_SHEET,
+        source_reference="planilha:linha-001",
     )
     assert public_contact.is_public is True
-    assert public_contact.authorization_reference == "TERMO-LGPD-2026-001"
+    assert public_contact.source_reference == "planilha:linha-001"
     assert public_contact.public_value == "+5593999990001"
 
     # Private contact holds encrypted value and has is_public=False
@@ -71,12 +72,13 @@ def test_contact_channel_instance_privacy_model_contracts():
         value_encrypted="enc:v1:secret_phone_hash",
         public_value="",
         is_public=False,
-        authorization_reference="",
+        source_type=ContactChannel.SourceType.LEGACY,
+        source_reference="",
     )
     assert private_contact.is_public is False
     assert private_contact.value_encrypted.startswith("enc:")
     assert private_contact.public_value == ""
-    assert private_contact.authorization_reference == ""
+    assert private_contact.source_reference == ""
 
 
 def test_public_contact_channel_serializer_excludes_private_fields():
@@ -84,7 +86,8 @@ def test_public_contact_channel_serializer_excludes_private_fields():
 
     # Guarantee private/sensitive fields are never exposed in public API serializer
     assert "value_encrypted" not in fields
-    assert "authorization_reference" not in fields
+    assert "source_reference" not in fields
+    assert "verified_by" not in fields
     assert "public_value" in fields
     assert "channel_type" in fields
     assert "verified_at" in fields

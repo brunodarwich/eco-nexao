@@ -5,8 +5,7 @@ a cinco rotas publicáveis na plataforma.  Também cria uma região não públic
 (status=DRAFT) que valida o isolamento sem alteração de código.
 
 Uso:
-    python manage.py seed_multiregion_pilot --publish-demo
-    python manage.py seed_multiregion_pilot  # apenas rascunhos (padrão)
+    python manage.py seed_multiregion_pilot  # cria ou atualiza rascunhos
 
 _Requisitos: RF-01, RF-02, RNF-06_
 """
@@ -28,16 +27,9 @@ class Command(BaseCommand):
         "o modelo multirregional do MVP ECOnexão."
     )
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--publish-demo",
-            action="store_true",
-            help="Publica as rotas e a segunda região no ambiente de desenvolvimento.",
-        )
-
     @transaction.atomic
     def handle(self, *args, **options):
-        pub = EditorialStatus.PUBLISHED if options["publish_demo"] else EditorialStatus.DRAFT
+        draft = EditorialStatus.DRAFT
 
         # ── Região 1 (já criada pelo seed de Pindobal) ──────────────────────────
         # Apenas referenciamos para adicionar mais rotas; não recriamos a região.
@@ -50,10 +42,8 @@ class Command(BaseCommand):
             "center_point": Point(-54.97478, -2.55997, srid=4326),
             "timezone": "America/Fortaleza",
         }
-        if not existing_region or not options["publish_demo"]:
-            if not existing_region or existing_region.status != EditorialStatus.PUBLISHED:
-                region_defaults["status"] = pub
-                region_defaults["published_version"] = 1 if options["publish_demo"] else None
+        if not existing_region or existing_region.status != EditorialStatus.PUBLISHED:
+            region_defaults["status"] = draft
 
         region_tapajos, _ = Region.objects.update_or_create(
             slug="santarem-alter-do-chao",
@@ -96,7 +86,6 @@ class Command(BaseCommand):
                 ),
                 (3, "Mirante do Rio Tapajós", -54.95500, -2.52200, RouteStage.StageType.END, 30),
             ],
-            pub_status=pub,
         )
 
         # ── Rota 3: Lago Verde (região 1) ──────────────────────────────────────
@@ -150,7 +139,6 @@ class Command(BaseCommand):
                     10,
                 ),
             ],
-            pub_status=pub,
         )
 
         # ── Região 2: Tapajós Leste (nova região pública) ──────────────────────
@@ -164,8 +152,7 @@ class Command(BaseCommand):
             "timezone": "America/Fortaleza",
         }
         if not existing_leste or existing_leste.status != EditorialStatus.PUBLISHED:
-            leste_defaults["status"] = pub
-            leste_defaults["published_version"] = 1 if options["publish_demo"] else None
+            leste_defaults["status"] = draft
 
         region_leste, _ = Region.objects.update_or_create(
             slug="tapajos-leste",
@@ -221,7 +208,6 @@ class Command(BaseCommand):
                 ),
                 (4, "Retorno ao portão", -54.70000, -2.43000, RouteStage.StageType.END, 15),
             ],
-            pub_status=pub,
         )
 
         # ── Rota 5: Encontro das Águas (região 2) ──────────────────────────────
@@ -262,7 +248,6 @@ class Command(BaseCommand):
                 ),
                 (4, "Retorno ao porto", -54.71000, -2.42000, RouteStage.StageType.END, 20),
             ],
-            pub_status=pub,
         )
 
         # ── Região 3: Região Piloto (não pública — Tarefa 12.2) ────────────────
@@ -283,11 +268,11 @@ class Command(BaseCommand):
             },
         )
 
-        state = "publicados" if options["publish_demo"] else "criados como rascunho"
         self.stdout.write(
             self.style.SUCCESS(
-                f"Piloto multirregional {state}: 4 rotas adicionais (2 regiões públicas) "
-                "e 1 região não pública de teste."
+                "Piloto multirregional criado ou atualizado como rascunho: "
+                "4 rotas adicionais e 1 região não pública de teste. "
+                "Conteúdo já publicado foi preservado."
             )
         )
 
@@ -308,7 +293,6 @@ class Command(BaseCommand):
         prep: str,
         a11y: str,
         stages: list[tuple],
-        pub_status: str,
     ) -> Route:
         existing_route = Route.objects.filter(region=region, slug=slug).first()
         route_defaults = {
@@ -325,7 +309,7 @@ class Command(BaseCommand):
             "offline_enabled": True,
         }
         if not existing_route or existing_route.editorial_status != EditorialStatus.PUBLISHED:
-            route_defaults["editorial_status"] = pub_status
+            route_defaults["editorial_status"] = EditorialStatus.DRAFT
 
         route, _ = Route.objects.update_or_create(
             region=region,

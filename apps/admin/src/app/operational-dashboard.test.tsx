@@ -4,32 +4,25 @@ import { OperationalDashboard } from './operational-dashboard'
 import {
   AppAnalyticsView,
   CatalogItemApi,
-  RouteApiSummary,
 } from './components/app-analytics-view'
-import { RouteReadinessView } from './components/route-readiness-view'
 import { PoiEditorModal } from './components/poi-editor-modal'
 import { CsvImportView } from './components/csv-import-view'
+import type { RouteApiSummary } from '../lib/dashboard-routes'
 
 describe('OperationalDashboard Integration Suite', () => {
   const originalFetch = globalThis.fetch
 
   const initialRoutes: RouteApiSummary[] = [
     {
+      durationMinutes: 240,
       slug: 'trilha-flona',
       title: 'Trilha Flona Tapajós',
-      summary: 'Trilha na Floresta Nacional',
-      distance_km: 18.5,
-      estimated_minutes: 240,
-      stages_count: 4,
-      actors_count: 2,
-      editorial_status: 'Publicado',
     },
   ]
 
   const initialCatalog: CatalogItemApi[] = [
     {
       id: 'poi-1',
-      editorial_status: 'Publicado',
       actor: {
         id: 'actor-1',
         display_name: 'Pousada Flona Tapajós',
@@ -42,7 +35,6 @@ describe('OperationalDashboard Integration Suite', () => {
     },
     {
       id: 'poi-2',
-      editorial_status: 'Publicado',
       actor: {
         id: 'actor-2',
         display_name: 'Restaurante Sumaúma',
@@ -81,6 +73,7 @@ describe('OperationalDashboard Integration Suite', () => {
     expect(markup).toContain('📊 Métricas do App')
     expect(markup).toContain('🗺️ Rotas &amp; Prontidão (0)')
     expect(markup).toContain('🔔 Relatos &amp; Auditoria')
+    expect(markup).toContain('📥 Importar CSV')
     expect(markup).toContain('🔍 Descoberta Externa (Google Places)')
   })
 
@@ -88,7 +81,9 @@ describe('OperationalDashboard Integration Suite', () => {
     const markup = renderToStaticMarkup(<OperationalDashboard />)
 
     expect(markup).toContain('Foco de Atenção Operacional')
-    expect(markup).toContain('Operação Estável em Nenhuma região selecionada')
+    expect(markup).toContain(
+      'Prioridade operacional indisponível em Nenhuma região selecionada',
+    )
   })
 
   describe('Operação 1: Edição manual de um ponto existente via PoiEditorModal', () => {
@@ -115,7 +110,7 @@ describe('OperationalDashboard Integration Suite', () => {
           isOpen={true}
           onClose={vi.fn()}
           onSave={vi.fn()}
-          regionSlug="santarem-alter-do-chao"
+          regionId="00000000-0000-0000-0000-000000000001"
           routeSlug="trilha-flona"
         />,
       )
@@ -162,84 +157,21 @@ describe('OperationalDashboard Integration Suite', () => {
     })
   })
 
-  describe('Operação 2: Inserção manual de um novo ponto de apoio via PoiEditorModal', () => {
-    it('opens modal in creation mode, inserts new POI into catalog, and increments route actors count in readiness matrix', () => {
-      // 1. Initial readiness matrix score with 2 actors: (100 + 100 + 50)/3 = 83%
-      const initialReadinessMarkup = renderToStaticMarkup(
-        <RouteReadinessView
-          isLoading={false}
-          regionSlug="santarem-alter-do-chao"
-          routes={initialRoutes}
-        />,
-      )
-      expect(initialReadinessMarkup).toContain('2 ponto(s)')
-      expect(initialReadinessMarkup).toContain('83%')
+  it('allows manual creation of support points via SupportPointCreateModal', () => {
+    const markup = renderToStaticMarkup(
+      <AppAnalyticsView
+        catalogItems={initialCatalog}
+        isLoading={false}
+        onOpenCreateModal={vi.fn()}
+        onOpenEditorModal={vi.fn()}
+        onSelectRoute={vi.fn()}
+        regionSlug="santarem-alter-do-chao"
+        routes={initialRoutes}
+        selectedRouteSlug="trilha-flona"
+      />,
+    )
 
-      // 2. Open PoiEditorModal in creation mode (initialData = null)
-      const creationModalMarkup = renderToStaticMarkup(
-        <PoiEditorModal
-          initialData={null}
-          isOpen={true}
-          onClose={vi.fn()}
-          onSave={vi.fn()}
-          regionSlug="santarem-alter-do-chao"
-          routeSlug="trilha-flona"
-        />,
-      )
-      expect(creationModalMarkup).toContain('Novo Ponto de Apoio Manual')
-      expect(creationModalMarkup).toContain('Cadastrar Ponto')
-
-      // 3. New inserted POI
-      const newPoi: CatalogItemApi = {
-        id: 'poi-custom-new',
-        editorial_status: 'Publicado',
-        actor: {
-          id: 'actor-new',
-          display_name: 'Guia Ecológico Tapajós',
-          category: { name: 'Comunidade & Guias', slug: 'comunidade-guias' },
-        },
-        public_locations: [
-          { formatted_address: 'Alter do Chão, Santarém - PA' },
-        ],
-        public_contact_channels: [
-          { channel_type: 'whatsapp', public_value: '+5593998887777' },
-        ],
-      }
-
-      const catalogAfterInsertion = [newPoi, ...initialCatalog]
-      const routesAfterInsertion: RouteApiSummary[] = [
-        {
-          ...initialRoutes[0],
-          actors_count: (initialRoutes[0].actors_count || 0) + 1,
-        },
-      ]
-
-      // 4. Verify catalog now contains new POI (3 items total)
-      const catalogMarkup = renderToStaticMarkup(
-        <AppAnalyticsView
-          catalogItems={catalogAfterInsertion}
-          isLoading={false}
-          onOpenEditorModal={vi.fn()}
-          onSelectRoute={vi.fn()}
-          regionSlug="santarem-alter-do-chao"
-          routes={routesAfterInsertion}
-          selectedRouteSlug="trilha-flona"
-        />,
-      )
-      expect(catalogMarkup).toContain('Guia Ecológico Tapajós')
-      expect(catalogMarkup).toContain('Comunidade &amp; Guias')
-
-      // 5. Verify RouteReadinessView matrix reflects updated 3 points and score (100+100+75)/3 = 92%
-      const updatedReadinessMarkup = renderToStaticMarkup(
-        <RouteReadinessView
-          isLoading={false}
-          regionSlug="santarem-alter-do-chao"
-          routes={routesAfterInsertion}
-        />,
-      )
-      expect(updatedReadinessMarkup).toContain('3 ponto(s)')
-      expect(updatedReadinessMarkup).toContain('92%')
-    })
+    expect(markup).toContain('➕ Adicionar Ponto Manual')
   })
 
   describe('Operação 3: Importação segura de arquivo CSV via CsvImportView', () => {

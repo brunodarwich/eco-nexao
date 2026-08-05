@@ -105,7 +105,7 @@ Confirme:
 - revogação interrompe novos eventos e limpa a fila opcional;
 - diálogos recebem, contêm e restauram foco e fecham com `Escape` quando aplicável;
 - tabs respondem a setas, `Home` e `End` e expõem relações ARIA corretas;
-- tema segue o sistema sem escolha salva e respeita escolha persistida;
+- tema inicia em claro sem escolha salva e respeita a escolha persistida;
 - estados de erro não aparecem como listas vazias;
 - nenhum território está fixado como regra de domínio ou fallback silencioso.
 

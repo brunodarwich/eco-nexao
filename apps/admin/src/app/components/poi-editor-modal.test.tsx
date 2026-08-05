@@ -1,13 +1,12 @@
-import { describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { PoiEditorModal } from './poi-editor-modal'
+import { describe, expect, it, vi } from 'vitest'
 import { CatalogItemApi } from './app-analytics-view'
+import { PoiEditorModal } from './poi-editor-modal'
 
-describe('PoiEditorModal Component', () => {
-  const mockInitialPoi: CatalogItemApi = {
-    id: 'poi-123',
+describe('PoiEditorModal', () => {
+  const initialPoi: CatalogItemApi = {
     actor: {
-      id: 'actor-123',
+      id: '00000000-0000-0000-0000-000000000002',
       display_name: 'Pousada Ventos do Tapajós',
       category: {
         name: 'Hospedagem',
@@ -28,75 +27,64 @@ describe('PoiEditorModal Component', () => {
     ],
   }
 
-  it('renders nothing when isOpen is false', () => {
-    const markup = renderToStaticMarkup(
+  function render(initialData: CatalogItemApi | null = initialPoi) {
+    return renderToStaticMarkup(
       <PoiEditorModal
-        initialData={null}
+        initialData={initialData}
+        isOpen
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+        regionId="00000000-0000-0000-0000-000000000001"
+        routeSlug="trilha-flona"
+      />,
+    )
+  }
+
+  it('renders nothing when closed or when no existing actor was selected', () => {
+    const closed = renderToStaticMarkup(
+      <PoiEditorModal
+        initialData={initialPoi}
         isOpen={false}
         onClose={vi.fn()}
         onSave={vi.fn()}
-        regionSlug="santarem-alter-do-chao"
+        regionId="00000000-0000-0000-0000-000000000001"
         routeSlug="trilha-flona"
       />,
     )
 
-    expect(markup).toBe('')
+    expect(closed).toBe('')
+    expect(render(null)).toBe('')
   })
 
-  it('renders creation mode when isOpen is true and initialData is null', () => {
-    const markup = renderToStaticMarkup(
-      <PoiEditorModal
-        initialData={null}
-        isOpen={true}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-        regionSlug="santarem-alter-do-chao"
-        routeSlug="trilha-flona"
-      />,
-    )
+  it('renders an accessible editor with the existing actor data', () => {
+    const markup = render()
 
     expect(markup).toContain('role="dialog"')
-    expect(markup).toContain('Novo Ponto de Apoio Manual')
-    expect(markup).toContain('Edição Direta no Painel')
-    expect(markup).toContain('trilha-flona')
-    expect(markup).toContain('Cadastrar Ponto')
-    expect(markup).toContain('Cancelar')
-    expect(markup).toContain('aria-label="Fechar modal"')
     expect(markup).toContain('aria-modal="true"')
-    expect(markup).toContain('tabindex="-1"')
+    expect(markup).toContain('aria-labelledby="poi-modal-title"')
     expect(markup).toContain('data-autofocus')
-  })
-
-  it('renders edit mode with pre-filled initialData fields', () => {
-    const markup = renderToStaticMarkup(
-      <PoiEditorModal
-        initialData={mockInitialPoi}
-        isOpen={true}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-        regionSlug="santarem-alter-do-chao"
-        routeSlug="trilha-flona"
-      />,
-    )
-
     expect(markup).toContain('Editar Ponto de Apoio')
     expect(markup).toContain('value="Pousada Ventos do Tapajós"')
     expect(markup).toContain('value="Av. Copacabana, 450, Alter do Chão"')
     expect(markup).toContain('value="+5593998765432"')
-    expect(markup).toContain('Salvar Alterações')
   })
 
-  it('renders all category options in select element', () => {
-    const markup = renderToStaticMarkup(
-      <PoiEditorModal
-        initialData={null}
-        isOpen={true}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-        regionSlug="santarem-alter-do-chao"
-        routeSlug="trilha-flona"
-      />,
+  it('makes the draft-only workflow explicit', () => {
+    const markup = render()
+
+    expect(markup).toContain('Salvar alterações como rascunho')
+    expect(markup).toContain(
+      'A pré-visualização só é atualizada depois que a API confirma o rascunho.',
     )
+    expect(markup).toContain(
+      'Revisão e publicação usam ações próprias do workflow.',
+    )
+    expect(markup).not.toContain('Publicado no App')
+    expect(markup).not.toContain('Cadastrar Ponto')
+  })
+
+  it('renders the supported category options', () => {
+    const markup = render()
 
     expect(markup).toContain('Gastronomia')
     expect(markup).toContain('Hospedagem')
@@ -104,59 +92,5 @@ describe('PoiEditorModal Component', () => {
     expect(markup).toContain('Artesanato &amp; Cultura')
     expect(markup).toContain('Comunidade &amp; Guias')
     expect(markup).toContain('Emergência &amp; Saúde')
-  })
-
-  it('renders editorial status options in select element', () => {
-    const markup = renderToStaticMarkup(
-      <PoiEditorModal
-        initialData={null}
-        isOpen={true}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-        regionSlug="santarem-alter-do-chao"
-        routeSlug="trilha-flona"
-      />,
-    )
-
-    expect(markup).toContain('Rascunho (Não publicado)')
-    expect(markup).toContain('Em Revisão Editorial')
-    expect(markup).toContain('Publicado no App')
-  })
-
-  it('renders edit mode with pre-filled fields and save changes button (Operation 1)', () => {
-    const markup = renderToStaticMarkup(
-      <PoiEditorModal
-        initialData={mockInitialPoi}
-        isOpen={true}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-        regionSlug="santarem-alter-do-chao"
-        routeSlug="trilha-flona"
-      />,
-    )
-
-    expect(markup).toContain('Editar Ponto de Apoio')
-    expect(markup).toContain('value="Pousada Ventos do Tapajós"')
-    expect(markup).toContain('value="Av. Copacabana, 450, Alter do Chão"')
-    expect(markup).toContain('value="+5593998765432"')
-    expect(markup).toContain('Salvar Alterações')
-  })
-
-  it('renders creation mode with initial fields for new support point insertion (Operation 2)', () => {
-    const markup = renderToStaticMarkup(
-      <PoiEditorModal
-        initialData={null}
-        isOpen={true}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-        regionSlug="santarem-alter-do-chao"
-        routeSlug="trilha-flona"
-      />,
-    )
-
-    expect(markup).toContain('Novo Ponto de Apoio Manual')
-    expect(markup).toContain('Cadastrar Ponto')
-    expect(markup).toContain('Gastronomia')
-    expect(markup).toContain('Rascunho (Não publicado)')
   })
 })

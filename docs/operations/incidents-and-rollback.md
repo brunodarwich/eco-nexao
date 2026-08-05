@@ -5,6 +5,7 @@ Este documento detalha os procedimentos de continuidade, backup, rollback de có
 ## 1. Backup e Restauração de Banco de Dados
 
 ### 1.1 Snapshot de Banco (Desenvolvimento/Homologação)
+
 Em ambientes Django sem PostgreSQL físico configurado, utilize o barramento nativo de serialização para backup de instâncias:
 
 ```powershell
@@ -13,6 +14,7 @@ uv --cache-dir .uv-cache run --project services/api python services/api/manage.p
 ```
 
 ### 1.2 Restauração de Dados
+
 Para restaurar os dados de um snapshot limpo em caso de indisponibilidade ou teste:
 
 ```powershell
@@ -25,11 +27,16 @@ uv --cache-dir .uv-cache run --project services/api python services/api/manage.p
 ## 2. Rollback de Aplicação (Código e Migrações)
 
 ### 2.1 Reversão de Código
-Todo o repositório segue a regra de commits atômicos e tag de releases imutáveis:
+
+O rollback de produção deve usar commits identificáveis e releases imutáveis no provedor. O
+repositório ainda não possui tags de release; até a adoção formal desse controle, registre no
+relatório operacional o commit exato implantado:
+
 1. Identifique o hash da release anterior no histórico do Git.
 2. Execute o rollback de implantação no provedor de hospedagem ou faça o checkout da tag estável anterior.
 
 ### 2.2 Reversão de Migrações (Database Schema Rollback)
+
 Todas as migrações dos módulos `accounts`, `audit`, `catalog`, `core`, `publishing`, `regions` e `routes` são reversíveis e declarativas:
 
 ```powershell
@@ -42,9 +49,11 @@ uv --cache-dir .uv-cache run --project services/api python services/api/manage.p
 ## 3. Rollback de Conteúdo Editorial
 
 ### 3.1 Arquitetura de Versões Imutáveis
+
 O módulo `publishing` gera snapshots imutáveis (`PublicationVersion`) vinculados a checksums SHA-256 e logs de auditoria (`AuditEvent`). A versão publicada atual do aplicativo **nunca** é sobrescrita destrutivamente; o rollback gera um novo número de versão incrementado (ex: v1 -> v2 (com falha) -> v3 (restauração da v1)).
 
 ### 3.2 Executando Rollback de Conteúdo
+
 O rollback de um item publicado para uma versão anterior pode ser realizado via API administrativa ou serviço backend:
 
 - **Via Painel Admin / API:**
@@ -57,9 +66,9 @@ O rollback de um item publicado para uma versão anterior pode ser realizado via
 
 ## 4. Resposta a Incidentes e Matriz de Mitigação
 
-| Tipo de Incidente | Causa Provável | Ação de Mitigação Implicada |
-| :--- | :--- | :--- |
-| **Inconsistência de Conteúdo** | Dados de rota/região publicados com erros | Acionar `restorePublicationVersion` para a última versão estável |
-| **Conflito de Edição Concorrente** | Dois editores alterando o mesmo item simultaneamente | O sistema retorna HTTP 409 (`publication_conflict`). O editor deve recarregar a versão mais recente antes de aplicar alterações |
-| **Falha em Migração de Banco** | Script de migração com erro em produção | Executar o comando de rollback de migração (`python manage.py migrate <app> <previous_migration>`) e reverter o deployment de código |
-| **Suspeita de Vazamento de Dados / PII** | Dados pessoais não autorizados em rascunhos | Acionar a API de LGPD/Auditoria para purga/anonimização e registrar o incidente em `AuditEvent` |
+| Tipo de Incidente                        | Causa Provável                                       | Ação de Mitigação Implicada                                                                                                                                                                                                                                                                                                                                                                                          |
+| :--------------------------------------- | :--------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Inconsistência de Conteúdo**           | Dados de rota/região publicados com erros            | Acionar `restorePublicationVersion` para a última versão estável                                                                                                                                                                                                                                                                                                                                                     |
+| **Conflito de Edição Concorrente**       | Dois editores alterando o mesmo item simultaneamente | O sistema retorna HTTP 409 (`publication_conflict`). O editor deve recarregar a versão mais recente antes de aplicar alterações                                                                                                                                                                                                                                                                                      |
+| **Falha em Migração de Banco**           | Script de migração com erro em produção              | Executar o comando de rollback de migração (`python manage.py migrate <app> <previous_migration>`) e reverter o deployment de código                                                                                                                                                                                                                                                                                 |
+| **Suspeita de Vazamento de Dados / PII** | Dados pessoais não autorizados em rascunhos          | Suspender o fluxo afetado, restringir acesso, preservar evidências técnicas sem copiar o dado pessoal e acionar o responsável por privacidade. Não existe endpoint genérico de anonimização; a remediação deve ser aprovada e executada sobre o domínio afetado. Para eventos brutos de analytics, use primeiro `purge_analytics --dry-run` e somente execute o expurgo após validar escopo, retenção e recuperação. |

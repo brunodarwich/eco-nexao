@@ -345,7 +345,9 @@ que vínculos de catálogo apontem para uma etapa de outra rota.
 
 O pacote `packages/ui` expõe tokens semânticos. Componentes usam apenas tokens, não cores literais. O tema claro usa `#F7F8F5` e branco como superfícies predominantes; o escuro usa fundos `#10160E`/`#172015`. Ver `.kiro/steering/design-system.md`.
 
-O bootstrap do tema lê a preferência salva antes da hidratação; sem preferência, consulta `prefers-color-scheme`. A escolha é armazenada localmente. Mapas e gráficos recebem paletas equivalentes para cada tema.
+O bootstrap do tema lê a preferência salva antes da hidratação; sem preferência, inicia no tema
+claro conforme o steering visual. A escolha explícita é armazenada localmente. Mapas e gráficos
+recebem paletas equivalentes para cada tema.
 
 ## Design da fatia vertical de Pindobal
 

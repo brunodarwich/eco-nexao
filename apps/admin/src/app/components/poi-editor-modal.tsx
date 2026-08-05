@@ -1,9 +1,12 @@
 'use client'
 
 import { Button } from '@econexao/ui/button'
+import { FeedbackState } from '@econexao/ui/feedback-state'
+import { useModalA11y } from '@econexao/ui/use-modal-a11y'
 import { FormEvent, useState } from 'react'
+import { getAdminErrorMessage } from '../../lib/admin-api'
+import { savePoiDraft } from '../../lib/poi-draft'
 import { CatalogItemApi } from './app-analytics-view'
-import { useModalA11y } from './use-modal-a11y'
 
 interface PoiEditorModalProps {
   isOpen: boolean
@@ -11,7 +14,7 @@ interface PoiEditorModalProps {
   onSave: (savedPoi: CatalogItemApi) => void
   initialData: CatalogItemApi | null
   routeSlug: string
-  regionSlug: string
+  regionId: string
 }
 
 export function PoiEditorModal({
@@ -20,7 +23,7 @@ export function PoiEditorModal({
   onSave,
   initialData,
   routeSlug,
-  regionSlug,
+  regionId,
 }: PoiEditorModalProps) {
   const [displayName, setDisplayName] = useState(
     initialData?.actor?.display_name || '',
@@ -36,8 +39,8 @@ export function PoiEditorModal({
   const [phone, setPhone] = useState(
     initialData?.public_contact_channels?.[0]?.public_value || '',
   )
-  const [editorialStatus, setEditorialStatus] = useState('Rascunho')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   const [prevInitialData, setPrevInitialData] = useState(initialData)
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
@@ -53,123 +56,32 @@ export function PoiEditorModal({
         '',
     )
     setPhone(initialData?.public_contact_channels?.[0]?.public_value || '')
-    setEditorialStatus(initialData?.editorial_status || 'Rascunho')
+    setSubmitError('')
   }
 
   const dialogRef = useModalA11y<HTMLDivElement>(isOpen, onClose)
 
-  if (!isOpen) return null
-
-  const isEditing = Boolean(initialData)
+  if (!isOpen || !initialData?.actor) return null
+  const actor = initialData.actor
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setSubmitError('')
     setIsSubmitting(true)
 
-    const payload = {
-      action: 'save_draft',
-      region_id: regionSlug,
-      snapshot: {
+    try {
+      await savePoiDraft({
+        actorId: actor.id,
         address,
         category: categoryName,
-        display_name: displayName,
+        displayName,
         phone,
-        status: editorialStatus,
-      },
-      target_id: initialData?.id || `poi-custom-${Date.now()}`,
-      target_type: 'actor',
-    }
-
-    try {
-      const csrfRes = await fetch('/api/admin/auth/csrf', {
-        credentials: 'include',
+        regionId,
       })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData.csrf_token || ''
-
-      const res = await fetch('/api/admin/editorial/revisions', {
-        body: JSON.stringify(payload),
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        method: 'POST',
-      })
-
-      if (res.ok) {
-        const resultData = await res.json().catch(() => ({}))
-        const savedStatus = resultData.snapshot?.status || editorialStatus
-
-        const updatedItem: CatalogItemApi = {
-          id:
-            initialData?.id ||
-            resultData.target_id ||
-            `poi-custom-${Date.now()}`,
-          editorial_status: savedStatus,
-          actor: {
-            id: initialData?.actor?.id || `actor-${Date.now()}`,
-            display_name: displayName,
-            category: {
-              name: categoryName,
-              slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
-            },
-          },
-          public_locations: [
-            {
-              formatted_address: address,
-              locality: address,
-            },
-          ],
-          public_contact_channels: phone
-            ? [
-                {
-                  channel_type: 'whatsapp',
-                  public_value: phone,
-                },
-              ]
-            : [],
-        }
-
-        onSave(updatedItem)
-        onClose()
-      } else {
-        // Fallback local se a API não estiver disponível no ambiente de teste estático
-        const updatedItem: CatalogItemApi = {
-          id: initialData?.id || `poi-custom-${Date.now()}`,
-          editorial_status: 'Rascunho',
-          actor: {
-            id: initialData?.actor?.id || `actor-${Date.now()}`,
-            display_name: displayName,
-            category: {
-              name: categoryName,
-              slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
-            },
-          },
-          public_locations: [
-            {
-              formatted_address: address,
-              locality: address,
-            },
-          ],
-          public_contact_channels: phone
-            ? [
-                {
-                  channel_type: 'whatsapp',
-                  public_value: phone,
-                },
-              ]
-            : [],
-        }
-        onSave(updatedItem)
-        onClose()
-      }
-    } catch {
       const updatedItem: CatalogItemApi = {
-        id: initialData?.id || `poi-custom-${Date.now()}`,
-        editorial_status: 'Rascunho',
+        ...initialData,
         actor: {
-          id: initialData?.actor?.id || `actor-${Date.now()}`,
+          ...actor,
           display_name: displayName,
           category: {
             name: categoryName,
@@ -193,6 +105,13 @@ export function PoiEditorModal({
       }
       onSave(updatedItem)
       onClose()
+    } catch (error) {
+      setSubmitError(
+        getAdminErrorMessage(
+          error,
+          'O rascunho não pôde ser salvo. Revise os dados e tente novamente.',
+        ),
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -211,11 +130,7 @@ export function PoiEditorModal({
         <div className="modal-header">
           <div>
             <span className="modal-eyebrow">Edição Direta no Painel</span>
-            <h2 id="poi-modal-title">
-              {isEditing
-                ? 'Editar Ponto de Apoio'
-                : 'Novo Ponto de Apoio Manual'}
-            </h2>
+            <h2 id="poi-modal-title">Editar Ponto de Apoio</h2>
           </div>
           <button
             data-autofocus
@@ -229,11 +144,18 @@ export function PoiEditorModal({
         </div>
 
         <p className="modal-subtitle">
-          Rota de destino: <strong>{routeSlug || 'Rota selecionada'}</strong>.
-          As edições salvam o rascunho com pré-visualização imediata.
+          Rota de destino: <strong>{routeSlug || 'Rota selecionada'}</strong>. A
+          pré-visualização só é atualizada depois que a API confirma o rascunho.
         </p>
 
         <form className="form-stack" onSubmit={handleSubmit}>
+          {submitError ? (
+            <FeedbackState
+              message={submitError}
+              title="Não foi possível salvar o rascunho"
+              variant="error"
+            />
+          ) : null}
           <label>
             Nome Comercial / Exibição público *
             <input
@@ -262,17 +184,13 @@ export function PoiEditorModal({
               </select>
             </label>
 
-            <label>
-              Status Editorial *
-              <select
-                onChange={(e) => setEditorialStatus(e.target.value)}
-                value={editorialStatus}
-              >
-                <option value="Rascunho">Rascunho (Não publicado)</option>
-                <option value="Em Revisão">Em Revisão Editorial</option>
-                <option value="Publicado">Publicado no App</option>
-              </select>
-            </label>
+            <div>
+              <span className="field-label">Destino editorial</span>
+              <p className="panel-hint">
+                Salvar cria um rascunho. Revisão e publicação usam ações
+                próprias do workflow.
+              </p>
+            </div>
           </div>
 
           <label>
@@ -298,7 +216,7 @@ export function PoiEditorModal({
               Cancelar
             </Button>
             <Button isLoading={isSubmitting} type="submit">
-              💾 {isEditing ? 'Salvar Alterações' : 'Cadastrar Ponto'}
+              💾 Salvar alterações como rascunho
             </Button>
           </div>
         </form>

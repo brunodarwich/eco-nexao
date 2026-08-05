@@ -8,6 +8,22 @@
 - GDAL e GEOS — no Windows, OSGeo4W em `C:\OSGeo4W` é detectado;
 - acesso ao banco Supabase/PostGIS do ambiente.
 
+O repositório não provisiona PostgreSQL/PostGIS local em Docker. Desenvolvimento, migrations e
+testes integrados usam o Supabase indicado por `DATABASE_URL`, carregado apenas pelo Django. Nunca
+copie essa variável para `NEXT_PUBLIC_*`, logs ou comandos documentados.
+
+Testes que criam fixtures devem confirmar explicitamente a referência pública do projeto alvo,
+usar somente dados fictícios identificáveis e removê-los em `finally`. Não execute a integração
+contra produção ou contra um projeto compartilhado sem autorização do responsável.
+
+### Integração entre serviços — task 7.4
+
+O comando `pnpm test:integration:services` usa as portas `18100` (Django API), `13100` (Next.js
+web) e `13101` (Next.js admin). Ele exige `TASK_7_4_SUPABASE_PROJECT_REF` com a referência pública
+do projeto autorizado, valida que o host da conexão Django corresponde a essa referência e não
+imprime `DATABASE_URL`. Web, admin e API são processos separados; todo tráfego funcional é HTTP
+real, sem mock de API.
+
 O Python é gerenciado pelo `uv` e não precisa ser instalado globalmente.
 
 ## Instalação

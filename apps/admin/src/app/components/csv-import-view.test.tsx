@@ -1,15 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { CsvImportView } from './csv-import-view'
-import { RouteApiSummary } from './app-analytics-view'
+import type { RouteApiSummary } from '../../lib/dashboard-routes'
 
 describe('CsvImportView Component', () => {
   const routes: RouteApiSummary[] = [
     {
-      actors_count: 2,
-      editorial_status: 'Em Revisão',
+      durationMinutes: 240,
       slug: 'pindobal',
-      stages_count: 3,
       title: 'Rota de Pindobal',
     },
   ]

@@ -47,7 +47,8 @@ def test_openapi_does_not_expose_private_catalog_fields():
         "provider_record_id",
         "review_status",
         "value_encrypted",
-        "authorization_reference",
+        "source_reference",
+        "verified_by",
         "external_id",
     ):
         assert private_field not in public_paths_text
@@ -58,7 +59,8 @@ def test_public_serializers_keep_explicit_allowlists():
     assert "external_id" not in PublicActorSerializer.Meta.fields
     assert "external_source_references" not in PublicActorSerializer.Meta.fields
     assert "value_encrypted" not in PublicContactChannelSerializer.Meta.fields
-    assert "authorization_reference" not in PublicContactChannelSerializer.Meta.fields
+    assert "source_reference" not in PublicContactChannelSerializer.Meta.fields
+    assert "verified_by" not in PublicContactChannelSerializer.Meta.fields
     assert "public_value" in PublicContactChannelSerializer.Meta.fields
     assert RouteCatalogItemSerializer.Meta.fields == (
         "route_role",

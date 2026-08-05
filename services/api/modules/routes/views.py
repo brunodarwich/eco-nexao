@@ -1,17 +1,30 @@
 from django.db.models import Prefetch, Q
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
-from rest_framework import generics
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
+from modules.accounts.permissions import (
+    AdminAction,
+    AdminRole,
+    get_user_region_slugs,
+    get_user_roles,
+    has_admin_action,
+)
 from modules.catalog.models import ActorLocation, ContactChannel, RouteActor
 from modules.core.models import EditorialStatus
 
+from .admin_serializers import RegionRouteReadinessResponseSerializer
 from .models import Alert, Route
+from .readiness import calculate_route_readiness
 from .serializers import (
     RouteCatalogItemSerializer,
     RouteDetailSerializer,
     RouteSummarySerializer,
 )
+from .throttles import AdminReadinessThrottle
 
 
 class PublishedRouteQuerysetMixin:
@@ -117,3 +130,43 @@ class RouteCatalogListView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+
+@extend_schema(
+    parameters=[OpenApiParameter("region_slug", str, required=True)],
+    responses={
+        200: RegionRouteReadinessResponseSerializer,
+        400: {"type": "object", "additionalProperties": True},
+        401: {"type": "object", "properties": {"detail": {"type": "string"}}},
+        403: {"type": "object", "properties": {"detail": {"type": "string"}}},
+        429: {"type": "object", "properties": {"detail": {"type": "string"}}},
+        500: {"type": "object", "properties": {"detail": {"type": "string"}}},
+    },
+    operation_id="listAdminRouteReadiness",
+    tags=["Admin routes"],
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+@throttle_classes([AdminReadinessThrottle])
+def admin_route_readiness(request):
+    """DTO operacional, deliberadamente separado de contratos públicos de rota."""
+    if not has_admin_action(request.user, AdminAction.VIEW_AGGREGATES):
+        return Response({"detail": "Permissão negada."}, status=status.HTTP_403_FORBIDDEN)
+    region_slug = request.query_params.get("region_slug", "")
+    if not region_slug:
+        return Response(
+            {"detail": "region_slug é obrigatório."}, status=status.HTTP_400_BAD_REQUEST
+        )
+    if AdminRole.ADMINISTRATOR not in get_user_roles(
+        request.user
+    ) and region_slug not in get_user_region_slugs(request.user):
+        return Response({"detail": "Permissão negada."}, status=status.HTTP_403_FORBIDDEN)
+    routes = (
+        Route.objects.filter(region__slug=region_slug)
+        .select_related("region")
+        .prefetch_related("stages", "segments", "actor_links__actor", "alerts")
+    )
+    items = [calculate_route_readiness(route).payload for route in routes]
+    response = Response({"region_slug": region_slug, "routes": items})
+    response["Cache-Control"] = "no-store"
+    return response

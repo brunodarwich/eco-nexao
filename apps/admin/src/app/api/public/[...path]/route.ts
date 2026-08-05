@@ -30,6 +30,15 @@ export async function GET(request: Request, context: RouteContext) {
       status: upstream.status,
     })
   } catch {
-    return Response.json([], { status: 200 })
+    return Response.json(
+      {
+        code: 'public_api_unavailable',
+        message: 'A API pública está indisponível.',
+      },
+      {
+        headers: { 'Cache-Control': 'no-store' },
+        status: 502,
+      },
+    )
   }
 }

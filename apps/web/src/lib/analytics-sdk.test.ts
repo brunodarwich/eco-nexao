@@ -37,7 +37,7 @@ describe('Analytics SDK and LGPD Consent', () => {
 
   it('defaults to null consent and does not track events', async () => {
     expect(getConsentChoice()).toBeNull()
-    await trackEvent('app_opened', { properties: { entry: 'direct' } })
+    await trackEvent('session_opened', { region_id: 'regiao-teste' })
     expect(memoryStorage.getItem(QUEUE_KEY)).toBeNull()
   })
 
@@ -72,17 +72,21 @@ describe('Analytics SDK and LGPD Consent', () => {
     setConsentChoice('granted')
     global.fetch = vi.fn().mockResolvedValue({ ok: true })
 
-    await trackEvent('route_viewed', {
-      screen_name: 'detail',
+    await trackEvent('route_opened', {
       region_id: 'santarem-alter-do-chao',
       route_id: 'pindobal',
-      properties: { source: 'card' },
     })
 
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/public/events/batch',
       expect.any(Object),
     )
+    const request = vi.mocked(global.fetch).mock.calls[0][1]!
+    const body = JSON.parse(request.body as string)
+    expect(body.consent_granted).toBe(true)
+    expect(body.events[0]).not.toHaveProperty('anonymous_id')
+    expect(body.events[0]).not.toHaveProperty('session_id')
+    expect(body.events[0]).not.toHaveProperty('properties')
   })
 
   it('persists consent and notifies the active tab when preferences change', () => {
@@ -111,7 +115,10 @@ describe('Analytics SDK and LGPD Consent', () => {
     const fetchMock = vi.fn().mockReturnValue(fetchPromise)
     vi.stubGlobal('fetch', fetchMock)
 
-    const tracking = trackEvent('route_viewed')
+    const tracking = trackEvent('route_opened', {
+      region_id: 'regiao-teste',
+      route_id: 'rota-teste',
+    })
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
     const signal = fetchMock.mock.calls[0][1].signal as AbortSignal
 
@@ -162,7 +169,7 @@ describe('Analytics SDK and LGPD Consent', () => {
 
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
-    await trackEvent('app_opened')
+    await trackEvent('session_opened', { region_id: 'regiao-teste' })
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(memoryStorage.getItem(QUEUE_KEY)).toBeNull()

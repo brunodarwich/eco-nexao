@@ -11,8 +11,9 @@ Para criar ou atualizar a demonstração no banco configurado localmente:
 pnpm seed:pindobal
 ```
 
-O script publica somente o conjunto explicitamente demonstrativo previsto pela tarefa da
-spec. Confirme o ambiente e a conexão antes de executá-lo.
+O script cria ou atualiza somente rascunhos demonstrativos e preserva conteúdo já publicado.
+Publicação exige o workflow editorial, confirmação humana e auditoria. Confirme o ambiente e a
+conexão antes de executá-lo.
 
 ## Adequação do inventário
 

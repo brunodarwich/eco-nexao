@@ -10,6 +10,8 @@ const allowedPaths = new Set([
   'imports/commit',
   'reports',
   'analytics/summary',
+  'catalog/support-points',
+  'dashboard/summary',
 ])
 
 interface RouteContext {
@@ -40,10 +42,24 @@ async function proxyRequest(request: Request, context: RouteContext) {
   }
 
   const requestUrl = new URL(request.url)
-  const target = new URL(`${apiBaseUrl()}/admin/${path}`)
+  // Next normaliza a barra final antes de entregar a requisição ao Route Handler.
+  // Os endpoints Django de relatos e catálogo, porém, são canônicos com barra final e não podem
+  // receber mutações por redirecionamento.
+  const trailingSlash =
+    segments[0] === 'reports' ||
+    (segments[0] === 'catalog' && segments[1] === 'support-points')
+      ? '/'
+      : ''
+  const target = new URL(`${apiBaseUrl()}/admin/${path}${trailingSlash}`)
   target.search = requestUrl.search
   const headers = new Headers({ Accept: 'application/json' })
-  for (const name of ['content-type', 'cookie', 'origin', 'x-csrftoken']) {
+  for (const name of [
+    'content-type',
+    'cookie',
+    'origin',
+    'x-csrftoken',
+    'idempotency-key',
+  ]) {
     const value = request.headers.get(name)
     if (value) headers.set(name, value)
   }

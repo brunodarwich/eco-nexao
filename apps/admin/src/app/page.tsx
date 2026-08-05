@@ -20,7 +20,8 @@ export default function AdminHomePage() {
         <h1>Painel Operacional</h1>
         <p className="summary">
           Acompanhe os acessos ao aplicativo, o engajamento nos pontos da rota,
-          a prontidão editorial e os relatos da comunidade em tempo real.
+          a prontidão editorial e os relatos da comunidade conforme os contratos
+          disponíveis.
         </p>
         <OperationalDashboard />
       </main>

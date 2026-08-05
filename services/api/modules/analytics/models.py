@@ -15,9 +15,10 @@ class RawAnalyticsEvent(models.Model):
     occurred_at = models.DateTimeField()
     received_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
-    anonymous_id = models.UUIDField(db_index=True)
-    session_id = models.UUIDField(null=True, blank=True)
-    consent_id = models.UUIDField(null=True, blank=True)
+    # A ingestão operacional não guarda identificadores de visitantes.
+    anonymous_id = models.UUIDField(null=True, blank=True, editable=False)
+    session_id = models.UUIDField(null=True, blank=True, editable=False)
+    consent_id = models.UUIDField(null=True, blank=True, editable=False)
     consent_version = models.CharField(max_length=16, default="1.0")
     app_version = models.CharField(max_length=32, default="1.0.0")
 
@@ -53,12 +54,14 @@ class DailyAnalyticsAggregate(models.Model):
     event_name = models.CharField(max_length=64, db_index=True)
     region_slug = models.CharField(max_length=64, blank=True, db_index=True)
     route_slug = models.CharField(max_length=64, blank=True, db_index=True)
+    # String vazia representa dimensão não aplicável e mantém a chave agregada determinística.
+    support_point_id = models.CharField(max_length=36, blank=True, default="", db_index=True)
     count = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = "Agregação Diária de Analytics"
         verbose_name_plural = "Agregações Diárias de Analytics"
-        unique_together = ("date", "event_name", "region_slug", "route_slug")
+        unique_together = ("date", "event_name", "region_slug", "route_slug", "support_point_id")
         ordering = ["-date", "event_name"]
 
     def __str__(self):

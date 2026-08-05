@@ -1,7 +1,6 @@
 export type ConsentChoice = 'necessary' | 'granted' | null
 
 export const CONSENT_KEY = 'econexao_consent_choice'
-const ANONYMOUS_ID_KEY = 'econexao_anonymous_id'
 export const QUEUE_KEY = 'econexao_analytics_queue'
 export const CONSENT_CHANGE_EVENT = 'econexao:consent-change'
 
@@ -46,23 +45,6 @@ export function getConsentChoice(): ConsentChoice {
   return null
 }
 
-export function getAnonymousId(): string {
-  if (typeof window === 'undefined') return ''
-  let id = localStorage.getItem(ANONYMOUS_ID_KEY)
-  if (!id) {
-    id = generateUUID()
-    localStorage.setItem(ANONYMOUS_ID_KEY, id)
-  }
-  return id
-}
-
-export function rotateAnonymousId(): string {
-  if (typeof window === 'undefined') return ''
-  const newId = generateUUID()
-  localStorage.setItem(ANONYMOUS_ID_KEY, newId)
-  return newId
-}
-
 export function clearAnalyticsQueue(): void {
   if (typeof window === 'undefined') return
   localStorage.removeItem(QUEUE_KEY)
@@ -80,7 +62,6 @@ export function setConsentChoice(choice: 'necessary' | 'granted'): void {
     for (const controller of activeFlushControllers) controller.abort()
     activeFlushControllers.clear()
     clearAnalyticsQueue()
-    rotateAnonymousId()
   }
 
   localStorage.setItem(CONSENT_KEY, choice)
@@ -92,13 +73,16 @@ export interface AnalyticsEventPayload {
   event_name: string
   schema_version: string
   occurred_at: string
-  anonymous_id: string
-  session_id?: string
-  screen_name?: string
   region_id?: string
   route_id?: string
-  properties?: Record<string, unknown>
+  actor_id?: string
 }
+
+export type OperationalEventName =
+  | 'session_opened'
+  | 'route_opened'
+  | 'contact_opened'
+  | 'offline_download_completed'
 
 export function sanitizeProperties(
   props?: Record<string, unknown>,
@@ -114,12 +98,11 @@ export function sanitizeProperties(
 }
 
 export async function trackEvent(
-  eventName: string,
+  eventName: OperationalEventName,
   context?: {
-    screen_name?: string
     region_id?: string
     route_id?: string
-    properties?: Record<string, unknown>
+    actor_id?: string
   },
 ): Promise<void> {
   if (typeof window === 'undefined') return
@@ -131,11 +114,9 @@ export async function trackEvent(
     event_name: eventName,
     schema_version: '1.0',
     occurred_at: new Date().toISOString(),
-    anonymous_id: getAnonymousId(),
-    screen_name: context?.screen_name || '',
     region_id: context?.region_id || '',
     route_id: context?.route_id || '',
-    properties: sanitizeProperties(context?.properties),
+    actor_id: context?.actor_id || '',
   }
 
   if (getConsentChoice() !== 'granted') return
@@ -175,7 +156,7 @@ export async function flushEvents(): Promise<void> {
     const res = await fetch('/api/public/events/batch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ events: queue }),
+      body: JSON.stringify({ consent_granted: true, events: queue }),
       signal: controller.signal,
     })
     if (res.ok && getConsentChoice() === 'granted') {

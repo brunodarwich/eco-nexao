@@ -9,9 +9,8 @@ describe('public theme foundation', () => {
     expect(isTheme(null)).toBe(false)
   })
 
-  it('bootstraps the system theme when no preference is persisted', () => {
-    expect(themeBootstrapScript).toContain("'(prefers-color-scheme: dark)'")
-    expect(themeBootstrapScript).toContain("? 'dark'")
+  it('bootstraps the light theme when no preference is persisted', () => {
+    expect(themeBootstrapScript).not.toContain('prefers-color-scheme')
     expect(themeBootstrapScript).toContain(": 'light'")
     expect(themeBootstrapScript).toContain('theme-color')
     expect(themeBootstrapScript).toContain('localStorage')

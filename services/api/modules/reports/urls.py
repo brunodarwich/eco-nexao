@@ -10,4 +10,9 @@ urlpatterns = [
         views.admin_moderate_report,
         name="admin_moderate_report",
     ),
+    path(
+        "admin/dashboard/summary",
+        views.admin_dashboard_summary,
+        name="admin_dashboard_summary",
+    ),
 ]

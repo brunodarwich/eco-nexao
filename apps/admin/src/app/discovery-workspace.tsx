@@ -4,6 +4,11 @@ import { Button } from '@econexao/ui/button'
 import { FeedbackState } from '@econexao/ui/feedback-state'
 import Image from 'next/image'
 import { FormEvent, useEffect, useState } from 'react'
+import {
+  adminMutation,
+  adminRequest,
+  getAdminErrorMessage,
+} from '../lib/admin-api'
 import googleMapsLogoDark from '../assets/google-maps-logo-dark.png'
 import googleMapsLogoLight from '../assets/google-maps-logo-light.png'
 
@@ -32,25 +37,6 @@ export interface GooglePlacesPreview {
   attribution: string
   result_count: number
   candidates: PlaceCandidate[]
-}
-
-interface ApiError {
-  code?: string
-  message?: string
-}
-
-async function readJson<T>(response: Response): Promise<T> {
-  return (await response.json()) as T
-}
-
-async function csrfToken() {
-  const response = await fetch('/api/admin/auth/csrf', {
-    cache: 'no-store',
-    credentials: 'include',
-  })
-  if (!response.ok) throw new Error('Não foi possível iniciar a sessão segura.')
-  const payload = await readJson<{ csrf_token: string }>(response)
-  return payload.csrf_token
 }
 
 function safeGoogleMapsUrl(value: string) {
@@ -162,20 +148,18 @@ export function DiscoveryWorkspace() {
 
   useEffect(() => {
     let active = true
-    fetch('/api/admin/auth/session', {
-      cache: 'no-store',
-      credentials: 'include',
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error()
-        return readJson<AdminSession>(response)
-      })
+    adminRequest<AdminSession>('auth/session')
       .then((payload) => {
         if (active) setSession(payload)
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (active)
-          setSessionError('Não foi possível consultar a sessão administrativa.')
+          setSessionError(
+            getAdminErrorMessage(
+              error,
+              'Não foi possível consultar a sessão administrativa.',
+            ),
+          )
       })
     return () => {
       active = false
@@ -188,28 +172,17 @@ export function DiscoveryWorkspace() {
     setIsSubmitting(true)
     const form = new FormData(event.currentTarget)
     try {
-      const token = await csrfToken()
-      const response = await fetch('/api/admin/auth/login', {
+      const payload = await adminMutation<AdminSession>('auth/login', {
         body: JSON.stringify({
           username: form.get('username'),
           password: form.get('password'),
         }),
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': token,
-        },
+        headers: { 'Content-Type': 'application/json' },
         method: 'POST',
       })
-      const payload = await readJson<AdminSession & ApiError>(response)
-      if (!response.ok || !payload.authenticated) {
-        throw new Error(payload.message || 'Usuário ou senha inválidos.')
-      }
       setSession(payload)
     } catch (error) {
-      setSessionError(
-        error instanceof Error ? error.message : 'Não foi possível entrar.',
-      )
+      setSessionError(getAdminErrorMessage(error, 'Não foi possível entrar.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -218,14 +191,15 @@ export function DiscoveryWorkspace() {
   async function logout() {
     setIsSubmitting(true)
     try {
-      const token = await csrfToken()
-      await fetch('/api/admin/auth/logout', {
-        credentials: 'include',
-        headers: { 'X-CSRFToken': token },
+      await adminMutation('auth/logout', {
         method: 'POST',
       })
       setSession({ authenticated: false, user: null })
       setPreview(null)
+    } catch (error) {
+      setSessionError(
+        getAdminErrorMessage(error, 'Não foi possível encerrar a sessão.'),
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -238,9 +212,8 @@ export function DiscoveryWorkspace() {
     setIsSubmitting(true)
     const form = new FormData(event.currentTarget)
     try {
-      const token = await csrfToken()
-      const response = await fetch(
-        '/api/admin/discovery/google-places/preview',
+      const payload = await adminMutation<GooglePlacesPreview>(
+        'discovery/google-places/preview',
         {
           body: JSON.stringify({
             region_slug: form.get('region_slug'),
@@ -254,26 +227,17 @@ export function DiscoveryWorkspace() {
               .filter(Boolean),
             max_results: Number(form.get('max_results')),
           }),
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': token,
-          },
+          headers: { 'Content-Type': 'application/json' },
           method: 'POST',
         },
       )
-      const payload = await readJson<GooglePlacesPreview & ApiError>(response)
-      if (!response.ok) {
-        throw new Error(
-          payload.message || 'A descoberta externa não pôde ser executada.',
-        )
-      }
       setPreview(payload)
     } catch (error) {
       setPreviewError(
-        error instanceof Error
-          ? error.message
-          : 'A descoberta externa não pôde ser executada.',
+        getAdminErrorMessage(
+          error,
+          'A descoberta externa não pôde ser executada.',
+        ),
       )
     } finally {
       setIsSubmitting(false)

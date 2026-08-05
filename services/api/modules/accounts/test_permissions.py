@@ -58,6 +58,7 @@ def fake_user(
 EXPECTED_ACTIONS = {
     AdminRole.EDITOR: {
         AdminAction.EDIT_CONTENT,
+        AdminAction.CREATE_SUPPORT_POINT,
         AdminAction.IMPORT_CSV,
         AdminAction.VIEW_AGGREGATES,
         AdminAction.DISCOVER_EXTERNAL,
@@ -120,6 +121,32 @@ def test_region_scopes_limit_object_actions():
         editor,
         AdminAction.EDIT_CONTENT,
         region=SimpleNamespace(pk="region-b"),
+    )
+    assert has_admin_action(
+        editor,
+        AdminAction.CREATE_SUPPORT_POINT,
+        region=SimpleNamespace(pk="region-a"),
+    )
+    assert not has_admin_action(
+        editor,
+        AdminAction.CREATE_SUPPORT_POINT,
+        region=SimpleNamespace(pk="region-b"),
+    )
+
+
+def test_support_point_creation_is_not_implicitly_granted_to_editorial_roles():
+    reviewer = fake_user(AdminRole.REVIEWER, region_ids={"region-a"})
+    publisher = fake_user(AdminRole.PUBLISHER, region_ids={"region-a"})
+
+    assert not has_admin_action(
+        reviewer,
+        AdminAction.CREATE_SUPPORT_POINT,
+        region="region-a",
+    )
+    assert not has_admin_action(
+        publisher,
+        AdminAction.CREATE_SUPPORT_POINT,
+        region="region-a",
     )
 
 

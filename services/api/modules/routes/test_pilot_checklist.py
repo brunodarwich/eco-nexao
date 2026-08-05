@@ -10,14 +10,11 @@ queryset e allowlists de campos declarados nas views e serializers.
 _Requisitos: RF-01 a RF-13, RNF-01 a RNF-08_
 """
 
-import uuid
-
 import pytest
 from django.utils import timezone
 
 from modules.analytics.serializers import (
     ALLOWED_EVENTS,
-    FORBIDDEN_PII_KEYS,
     AnalyticsEventInputSerializer,
 )
 from modules.routes.serializers import RouteDetailSerializer, RouteSummarySerializer
@@ -116,31 +113,29 @@ def test_route_detail_includes_stages_and_segments_for_offline_pack():
 
 
 # Base mínima para um evento válido
-def _base_event(event_name: str = "app_opened", **extra) -> dict:
+def _base_event(event_name: str = "session_opened", **extra) -> dict:
     return {
+        "event_id": "00000000-0000-4000-8000-000000000001",
         "event_name": event_name,
         "occurred_at": timezone.now().isoformat(),
-        "anonymous_id": str(uuid.uuid4()),
+        "region_id": "tapajos",
         **extra,
     }
 
 
 def test_analytics_serializer_rejects_each_forbidden_pii_key():
-    """Cada chave de FORBIDDEN_PII_KEYS é rejeitada individualmente no campo properties."""
-    for key in FORBIDDEN_PII_KEYS:
-        data = _base_event(properties={key: "valor-sensivel"})
+    """Identificadores e coordenadas são rejeitados no envelope do evento."""
+    for key in ("email", "phone", "user_id", "session_id", "latitude", "longitude"):
+        data = _base_event(**{key: "valor-sensivel"})
         serializer = AnalyticsEventInputSerializer(data=data)
-        assert not serializer.is_valid(), (
-            f"Chave PII '{key}' foi aceita indevidamente no campo properties."
-        )
-        assert "properties" in serializer.errors
+        assert not serializer.is_valid(), f"Chave PII '{key}' foi aceita indevidamente."
 
 
 def test_analytics_serializer_accepts_safe_properties():
-    """Propriedades sem PII e com evento válido passam na validação."""
+    """Somente dimensões declaradas para o evento passam na validação."""
     safe_data = _base_event(
-        event_name="route_viewed",
-        properties={"source": "card", "offline_capable": "true"},
+        event_name="route_opened",
+        route_id="pindobal",
     )
     serializer = AnalyticsEventInputSerializer(data=safe_data)
     assert serializer.is_valid(), (
@@ -159,41 +154,43 @@ def test_analytics_serializer_rejects_unknown_event_name():
 def test_analytics_allowed_events_covers_key_user_actions():
     """ALLOWED_EVENTS inclui os eventos mínimos exigidos pela plataforma."""
     mandatory = {
-        "app_opened",
-        "screen_viewed",
-        "route_viewed",
-        "offline_download_started",
-        "consent_changed",
+        "session_opened",
+        "route_opened",
+        "contact_opened",
+        "offline_download_completed",
     }
     missing = mandatory - ALLOWED_EVENTS
     assert not missing, f"Eventos obrigatórios ausentes de ALLOWED_EVENTS: {missing}"
 
 
-def test_analytics_forbidden_pii_keys_covers_critical_identifiers():
-    """FORBIDDEN_PII_KEYS protege pelo menos os identificadores pessoais críticos."""
-    critical = {"email", "cpf", "phone", "user_id", "latitude", "longitude"}
-    missing = critical - FORBIDDEN_PII_KEYS
-    assert not missing, f"Identificadores críticos ausentes de FORBIDDEN_PII_KEYS: {missing}"
+def test_analytics_allowlist_excludes_personal_identifiers():
+    serializer = AnalyticsEventInputSerializer()
+    for forbidden in ("anonymous_id", "session_id", "consent_id", "properties"):
+        assert forbidden not in serializer.fields
 
 
 @pytest.mark.django_db
-def test_seed_multiregion_preserves_published_status():
-    """seed_multiregion_pilot não altera o status PUBLISHED
-    nem rebaixa para DRAFT em execuções normais.
-    """
+def test_seed_multiregion_creates_drafts_and_preserves_published_status():
+    """O seed nunca publica e não rebaixa conteúdo publicado pelo workflow."""
     from django.core.management import call_command
 
     from modules.core.models import EditorialStatus
     from modules.regions.models import Region
     from modules.routes.models import Route
 
-    call_command("seed_multiregion_pilot", publish_demo=True)
+    call_command("seed_multiregion_pilot")
     region = Region.objects.get(slug="santarem-alter-do-chao")
     route = Route.objects.get(region=region, slug="orla-alter-do-chao")
-    assert region.status == EditorialStatus.PUBLISHED
-    assert route.editorial_status == EditorialStatus.PUBLISHED
+    assert region.status == EditorialStatus.DRAFT
+    assert route.editorial_status == EditorialStatus.DRAFT
 
-    # Executa novamente sem --publish-demo; deve preservar o status PUBLISHED existente
+    region.status = EditorialStatus.PUBLISHED
+    region.published_version = 7
+    region.save(update_fields=["status", "published_version"])
+    route.editorial_status = EditorialStatus.PUBLISHED
+    route.save(update_fields=["editorial_status"])
+
+    # Executa novamente; deve preservar o status PUBLISHED existente.
     call_command("seed_multiregion_pilot")
     region.refresh_from_db()
     route.refresh_from_db()
@@ -201,3 +198,47 @@ def test_seed_multiregion_preserves_published_status():
     assert route.editorial_status == EditorialStatus.PUBLISHED, (
         "Rota foi rebaixada indevidamente no seed!"
     )
+    assert region.published_version == 7
+
+
+@pytest.mark.django_db
+def test_seed_pindobal_never_publishes_and_preserves_workflow_state():
+    from django.core.management import call_command
+
+    from modules.catalog.models import Actor
+    from modules.core.models import EditorialStatus
+    from modules.regions.models import Region
+    from modules.routes.models import Alert, Route
+
+    call_command("seed_pindobal_demo")
+    region = Region.objects.get(slug="santarem-alter-do-chao")
+    route = Route.objects.get(region=region, slug="pindobal")
+    alert = Alert.objects.get(route=route, title="Informações demonstrativas")
+    actor = Actor.objects.get(external_id="demo:pindobal:apoio")
+
+    assert region.status == EditorialStatus.DRAFT
+    assert route.editorial_status == EditorialStatus.DRAFT
+    assert alert.status == EditorialStatus.DRAFT
+    assert actor.editorial_status == EditorialStatus.DRAFT
+
+    region.status = EditorialStatus.PUBLISHED
+    region.published_version = 9
+    region.save(update_fields=["status", "published_version"])
+    route.editorial_status = EditorialStatus.PUBLISHED
+    route.save(update_fields=["editorial_status"])
+    alert.status = EditorialStatus.PUBLISHED
+    alert.save(update_fields=["status"])
+    actor.editorial_status = EditorialStatus.PUBLISHED
+    actor.save(update_fields=["editorial_status"])
+
+    call_command("seed_pindobal_demo")
+    region.refresh_from_db()
+    route.refresh_from_db()
+    alert.refresh_from_db()
+    actor.refresh_from_db()
+
+    assert region.status == EditorialStatus.PUBLISHED
+    assert region.published_version == 9
+    assert route.editorial_status == EditorialStatus.PUBLISHED
+    assert alert.status == EditorialStatus.PUBLISHED
+    assert actor.editorial_status == EditorialStatus.PUBLISHED

@@ -133,3 +133,10 @@ class AdminReportSerializer(serializers.ModelSerializer):
             if not has_admin_action(request.user, AdminAction.VIEW_REPORTER_CONTACT, region=region):
                 data["reporter_contact"] = ""
         return data
+
+
+class DashboardSummarySerializer(serializers.Serializer):
+    region_slug = serializers.CharField(allow_blank=True)
+    priority_reports_count = serializers.IntegerField()
+    active_alerts_count = serializers.IntegerField()
+    pending_revisions_count = serializers.IntegerField()

@@ -246,7 +246,12 @@ def validate_target_references(
         invalid_contacts = ContactChannel.objects.filter(
             actor=target,
             is_public=True,
-        ).filter(Q(public_value="") | Q(authorization_reference="") | Q(verified_at__isnull=True))
+        ).filter(
+            Q(public_value="")
+            | Q(source_reference="")
+            | Q(verified_at__isnull=True)
+            | Q(verified_by__isnull=True)
+        )
         if invalid_contacts.exists():
             errors["contacts"] = [
                 "Contatos públicos exigem valor, autorização e verificação vigente."

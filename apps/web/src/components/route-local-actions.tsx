@@ -20,6 +20,7 @@ import {
   setFavorite,
   type OfflinePackageMetadata,
 } from '@/lib/offline-storage'
+import { trackEvent } from '@/lib/analytics-sdk'
 
 const favoriteChangedEvent = 'econexao:favorite-changed'
 
@@ -145,6 +146,10 @@ export function RouteLocalActions({ route }: { route: RouteDetail }) {
         void deleteRoutePackage(offlinePackage.cacheName)
       }
       setOfflinePackage(metadata)
+      void trackEvent('offline_download_completed', {
+        region_id: route.region_slug,
+        route_id: route.slug,
+      })
       setConfirmingDownload(false)
       setMessage(
         `Rota salva para uso offline: ${formatPackageSize(metadata.sizeBytes)}.`,

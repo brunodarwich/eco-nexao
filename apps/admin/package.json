@@ -7,10 +7,11 @@
     "build": "next build --webpack",
     "start": "next start --port 3001",
     "lint": "eslint src",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm exec tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
+    "@econexao/contracts": "workspace:*",
     "@econexao/ui": "workspace:*",
     "next": "^16.1.6",
     "react": "^19.2.4",
@@ -20,6 +21,7 @@
     "@econexao/config": "workspace:*",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.9.0"
   }
 }

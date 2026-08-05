@@ -3,10 +3,12 @@
 import { FeedbackState } from '@econexao/ui/feedback-state'
 import { useEffect, useState } from 'react'
 import {
-  AdminDataState,
-  AdminRequestError,
-  classifyAdminResponse,
-} from './admin-data-state'
+  adminMutation,
+  adminRequest,
+  getAdminRequestError,
+  type AdminRequestError,
+} from '../../lib/admin-api'
+import { AdminDataState } from './admin-data-state'
 
 export interface AuditEventItem {
   id: string
@@ -42,33 +44,23 @@ export function ReportsAlertsView({ regionSlug }: ReportsAlertsViewProps) {
   const [requestError, setRequestError] = useState<AdminRequestError | null>(
     null,
   )
+  const [moderationError, setModerationError] = useState('')
 
   useEffect(() => {
     let active = true
 
-    const fetchJson = async (url: string) => {
-      const res = await fetch(url, {
-        cache: 'no-store',
-        credentials: 'include',
-      })
-      if (!res.ok) throw classifyAdminResponse(res.status)
-      return res.json()
-    }
-
     Promise.allSettled([
-      fetchJson('/api/admin/reports/'),
-      fetchJson('/api/admin/audit-logs'),
+      adminRequest<PublicReportItem[]>('reports/'),
+      adminRequest<AuditEventItem[] | { results?: AuditEventItem[] }>(
+        'audit-logs',
+      ),
     ]).then(([reportsRes, auditRes]) => {
       if (!active) return
       const failed = [reportsRes, auditRes].find(
         (result) => result.status === 'rejected',
       )
       if (failed?.status === 'rejected') {
-        setRequestError(
-          typeof failed.reason === 'string'
-            ? (failed.reason as AdminRequestError)
-            : 'unavailable',
-        )
+        setRequestError(getAdminRequestError(failed.reason))
       } else {
         setRequestError(null)
       }
@@ -91,36 +83,27 @@ export function ReportsAlertsView({ regionSlug }: ReportsAlertsViewProps) {
   }, [regionSlug])
 
   async function handleModerate(reportId: string, newStatus: string) {
+    setModerationError('')
     try {
-      const csrfRes = await fetch('/api/admin/auth/csrf', {
-        credentials: 'include',
-      })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData.csrf_token || ''
-
-      const res = await fetch(`/api/admin/reports/${reportId}/`, {
+      await adminMutation(`reports/${reportId}/`, {
         body: JSON.stringify({
           moderation_note: `Moderado no painel em ${new Date().toLocaleString('pt-BR')}`,
           status: newStatus,
         }),
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
+        headers: { 'Content-Type': 'application/json' },
         method: 'PATCH',
       })
-      if (res.ok) {
-        setReports((prev) =>
-          prev.map((item) =>
-            item.id === reportId
-              ? { ...item, status: newStatus as PublicReportItem['status'] }
-              : item,
-          ),
-        )
-      }
+      setReports((prev) =>
+        prev.map((item) =>
+          item.id === reportId
+            ? { ...item, status: newStatus as PublicReportItem['status'] }
+            : item,
+        ),
+      )
     } catch {
-      // Graceful fallback
+      setModerationError(
+        'A moderação não foi salva. O relato permanece no estado anterior.',
+      )
     }
   }
 
@@ -151,6 +134,14 @@ export function ReportsAlertsView({ regionSlug }: ReportsAlertsViewProps) {
           </p>
         </div>
       </div>
+
+      {moderationError ? (
+        <FeedbackState
+          message={moderationError}
+          title="Não foi possível moderar o relato"
+          variant="error"
+        />
+      ) : null}
 
       {reports.length ? (
         <div className="reports-section">

@@ -9,7 +9,7 @@ import {
   getRouteMapPoints,
   type RouteMapPoint,
 } from '@/lib/route-map-points'
-import { useModalA11y } from '@/lib/use-modal-a11y'
+import { useModalA11y } from '@econexao/ui/use-modal-a11y'
 
 interface RouteMapProps {
   catalog: RouteCatalogItem[]

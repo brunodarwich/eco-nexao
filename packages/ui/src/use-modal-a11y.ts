@@ -1,6 +1,8 @@
+'use client'
+
 import { useEffect, useRef, type RefObject } from 'react'
 
-const focusable =
+const focusableSelector =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 export function useModalA11y<T extends HTMLElement>(
@@ -17,11 +19,13 @@ export function useModalA11y<T extends HTMLElement>(
 
   useEffect(() => {
     if (!open) return
+
     restoreRef.current = document.activeElement as HTMLElement | null
     const dialog = dialogRef.current
     if (!dialog) return
+
     const getFocusable = () =>
-      Array.from(dialog.querySelectorAll<HTMLElement>(focusable))
+      Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector))
     const initial = dialog.querySelector<HTMLElement>('[data-autofocus]')
     ;(initial || getFocusable()[0] || dialog).focus()
 
@@ -31,17 +35,25 @@ export function useModalA11y<T extends HTMLElement>(
         closeRef.current()
         return
       }
+
       if (event.key !== 'Tab') return
       const items = getFocusable()
-      if (!items.length) return event.preventDefault()
-      if (event.shiftKey && document.activeElement === items[0]) {
+      if (items.length === 0) {
         event.preventDefault()
-        items.at(-1)?.focus()
-      } else if (!event.shiftKey && document.activeElement === items.at(-1)) {
+        return
+      }
+
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
         event.preventDefault()
-        items[0].focus()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
       }
     }
+
     dialog.addEventListener('keydown', handleKeyDown)
     return () => {
       dialog.removeEventListener('keydown', handleKeyDown)

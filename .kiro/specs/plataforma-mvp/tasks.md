@@ -96,7 +96,11 @@
     - Verificação: `pnpm --filter @econexao/web typecheck`; `pnpm --filter @econexao/web test` (16 testes); `pnpm --filter @econexao/web lint`; `pnpm --filter @econexao/web build`; inspeção Playwright da build de produção em desktop, tema escuro e viewport móvel de 390 px, sem erros de console, overlay ou overflow horizontal. Evidências visuais: 2 atores publicados; pins sobre as etapas e com prioridade de clique; filtro `Alimentação` com `aria-pressed=true`, lista reduzida para 1 item e fonte renderizada sem o pin de Apoio; alternativa textual preservada.
   - _Requisitos: RF-03, RF-04, RF-05, RNF-01_
   - Arquivos: `apps/web/src/{app,components,lib}/`, `services/api/modules/{core,routes}/`, `packages/contracts/`, `README.md`
-  - Verificação: `pnpm check` (9 testes frontend e 34 backend, contratos, lint, formatação, tipos e dois builds); `pnpm test:e2e` (card → rota → mapa/lista → catálogo → contato aprovado em Chromium desktop e mobile); `pnpm seed:pindobal` idempotente; banco de desenvolvimento com 1 região, 1 rota, 3 etapas, 2 segmentos e 2 atores demonstrativos publicados
+  - Verificação histórica: `pnpm check` (9 testes frontend e 34 backend, contratos, lint,
+    formatação, tipos e dois builds); `pnpm test:e2e` (card → rota → mapa/lista → catálogo →
+    contato aprovado em Chromium desktop e mobile). A publicação direta do seed usada nessa linha
+    de base foi descontinuada; `pnpm seed:pindobal` agora cria rascunhos e preserva publicações
+    existentes.
 
 - [x] 5A. Descobrir candidatos próximos de Pindobal pelo Google Maps
   - Dependências: 3, 5
@@ -220,7 +224,10 @@
     - Verificação: 18 novos testes em `test_pilot_checklist.py` (5 editoriais, 4 de acessibilidade, 3 offline, 6 LGPD/analytics) e 5 testes em `test_multiregion_validation.py` aprovados; `pnpm check` com 167 testes backend completos.
   - _Requisitos: RF-01 a RF-13, RNF-01 a RNF-08_
   - Arquivos: `services/api/modules/routes/management/commands/seed_multiregion_pilot.py`, `services/api/modules/routes/test_pilot_checklist.py`, `services/api/modules/catalog/test_multiregion_validation.py`, `package.json`
-  - Verificação: `pnpm check` (167 testes backend, 21 da PWA, 41 do painel, contratos, lint, formatação, tipos e dois builds); 23 novos testes específicos de multiregião e checklist; `pnpm seed:pilot` [NEW]; banco de desenvolvimento com 2 regiões públicas, 5 rotas totais e 1 região não pública de teste.
+  - Verificação histórica: `pnpm check` (167 testes backend, 21 da PWA, 41 do painel, contratos,
+    lint, formatação, tipos e dois builds); 23 testes específicos de multirregião e checklist. A
+    publicação direta usada nessa linha de base foi descontinuada pela spec `revisao-pos-mvp`;
+    `pnpm seed:pilot` agora cria rascunhos e preserva publicações existentes.
 
 ## Verificação integrada
 

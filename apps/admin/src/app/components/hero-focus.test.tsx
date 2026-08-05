@@ -3,27 +3,44 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { HeroFocus } from './hero-focus'
 
 describe('HeroFocus Component', () => {
-  it('renders stable operation state when no alerts and no pending revisions', () => {
+  it('does not claim stability while consolidated counts are unavailable', () => {
     const handleNavigate = vi.fn()
     const markup = renderToStaticMarkup(
       <HeroFocus
         activeRouteName="Trilha da Flona"
-        alertsCount={0}
+        alertsCount={null}
         onNavigateTab={handleNavigate}
-        pendingRevisionsCount={0}
+        pendingRevisionsCount={null}
         regionName="Santarém - Alter do Chão"
         routeCount={3}
       />,
     )
 
     expect(markup).toContain('Foco de Atenção Operacional')
-    expect(markup).toContain('Operação Estável em Santarém - Alter do Chão')
     expect(markup).toContain(
-      'Todas as 3 rota(s) cadastradas em Santarém - Alter do Chão estão com status regular',
+      'Prioridade operacional indisponível em Santarém - Alter do Chão',
     )
-    expect(markup).toContain('Trilha da Flona')
-    expect(markup).toContain('📊 Ver Desempenho do App')
+    expect(markup).toContain(
+      'O resumo consolidado de alertas e revisões ainda não é fornecido pela API',
+    )
+    expect(markup).not.toContain('Operação Estável')
+    expect(markup).toContain('Consultar relatos')
     expect(markup).toContain('🗺️ Matriz de Prontidão (3 rotas)')
+  })
+
+  it('renders stable operation only with verified zero counts', () => {
+    const markup = renderToStaticMarkup(
+      <HeroFocus
+        activeRouteName="Trilha da Flona"
+        alertsCount={0}
+        onNavigateTab={vi.fn()}
+        pendingRevisionsCount={0}
+        regionName="Santarém - Alter do Chão"
+        routeCount={3}
+      />,
+    )
+
+    expect(markup).toContain('Operação Estável em Santarém - Alter do Chão')
   })
 
   it('renders alert focus state when alerts are active', () => {

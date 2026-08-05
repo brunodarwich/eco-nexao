@@ -31,9 +31,10 @@ OSGEO4W_GDAL_HANDLE = (
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-local-development-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
+DEFAULT_ALLOWED_HOSTS = "localhost,127.0.0.1,testserver,.loca.lt,.vercel.app,.trycloudflare.com"
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver,.loca.lt,.vercel.app,.trycloudflare.com").split(",")
+    for host in os.getenv("DJANGO_ALLOWED_HOSTS", DEFAULT_ALLOWED_HOSTS).split(",")
     if host.strip()
 ]
 CSRF_TRUSTED_ORIGINS = [
@@ -84,6 +85,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+if os.getenv("DJANGO_INTEGRATION_TEST_FAULTS", "false").lower() == "true":
+    MIDDLEWARE.insert(1, "tests.integration.fault_middleware.IntegrationFaultMiddleware")
 
 ROOT_URLCONF = "config.urls"
 TEMPLATES = [
@@ -145,8 +148,18 @@ REST_FRAMEWORK = {
             "10/hour",
         ),
         "csv_validation": os.getenv("CSV_VALIDATION_RATE", "30/hour"),
+        "support_point_create_user": os.getenv(
+            "SUPPORT_POINT_CREATE_USER_RATE",
+            "20/hour",
+        ),
+        "support_point_create_origin": os.getenv(
+            "SUPPORT_POINT_CREATE_ORIGIN_RATE",
+            "60/hour",
+        ),
         "public_reports": os.getenv("PUBLIC_REPORTS_RATE", "5/hour"),
         "analytics_batch": os.getenv("ANALYTICS_BATCH_RATE", "60/hour"),
+        "admin_readiness": os.getenv("ADMIN_READINESS_RATE", "120/hour"),
+        "admin_analytics": os.getenv("ADMIN_ANALYTICS_RATE", "120/hour"),
     },
 }
 
@@ -154,4 +167,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "ECOnexão API",
     "DESCRIPTION": "API pública e administrativa versionada da ECOnexão.",
     "VERSION": "1.0.0",
+    "POSTPROCESSING_HOOKS": [
+        "config.openapi_overlays.apply_design_first_overlays",
+    ],
 }

@@ -2,16 +2,21 @@
 
 import { useState, useSyncExternalStore } from 'react'
 import {
+  CONSENT_CHANGE_EVENT,
   getConsentChoice,
   setConsentChoice,
   type ConsentChoice,
 } from '../lib/analytics-sdk'
-import { useModalA11y } from '../lib/use-modal-a11y'
+import { useModalA11y } from '@econexao/ui/use-modal-a11y'
 
 function subscribe(callback: () => void) {
   if (typeof window === 'undefined') return () => {}
   window.addEventListener('storage', callback)
-  return () => window.removeEventListener('storage', callback)
+  window.addEventListener(CONSENT_CHANGE_EVENT, callback)
+  return () => {
+    window.removeEventListener('storage', callback)
+    window.removeEventListener(CONSENT_CHANGE_EVENT, callback)
+  }
 }
 
 function getSnapshot(): ConsentChoice {
@@ -29,111 +34,108 @@ export function AnalyticsConsentBanner() {
     setShowConfigModal(false),
   )
 
-  if (choice !== null) {
-    return null
-  }
-
   const handleChoice = (selected: 'necessary' | 'granted') => {
     setConsentChoice(selected)
     setShowConfigModal(false)
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('storage'))
-    }
   }
 
   return (
     <>
-      <aside
-        aria-label="Aviso de Privacidade e Métricas"
-        className="fixed bottom-0 left-0 right-0 z-50 p-4 border-t border-[var(--color-border,#DDE3D9)] bg-[var(--color-surface,#FFFFFF)] dark:bg-[var(--color-surface,#101610)] shadow-lg transition-all"
-      >
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="text-sm text-[var(--color-text,#172015)] dark:text-[var(--color-text,#F5F7F3)]">
-            <p className="font-semibold mb-1">Privacidade e Uso de Dados</p>
-            <p className="text-[var(--color-text-muted,#5E695A)] dark:text-[var(--color-text-muted,#AFB9AC)]">
-              Usamos armazenamento necessário para o aplicativo funcionar. Com
-              sua permissão, também coletamos métricas pseudonimizadas para
-              entender quais telas e rotas são úteis. Você pode alterar a
-              qualquer momento.
-            </p>
-          </div>
+      {choice === null ? (
+        <aside
+          aria-label="Aviso de Privacidade e Métricas"
+          className="analytics-consent-banner"
+        >
+          <div className="analytics-consent-banner__inner">
+            <div className="analytics-consent-copy">
+              <strong>Privacidade e uso de dados</strong>
+              <p>
+                Usamos armazenamento necessário para o aplicativo funcionar. Com
+                sua permissão, também coletamos métricas pseudonimizadas para
+                entender quais telas e rotas são úteis. Você pode alterar a
+                escolha a qualquer momento.
+              </p>
+            </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => handleChoice('necessary')}
-              className="px-4 py-2 text-sm font-medium border border-[var(--color-border,#DDE3D9)] rounded-lg hover:bg-[var(--color-surface-subtle,#EFF2EC)] dark:hover:bg-[var(--color-surface-subtle,#141C14)] transition-colors"
-            >
-              Usar apenas necessários
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowConfigModal(true)}
-              className="px-3 py-2 text-sm text-[var(--color-text-muted,#5E695A)] hover:underline"
-            >
-              Configurar
-            </button>
-            <button
-              type="button"
-              onClick={() => handleChoice('granted')}
-              className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary,#33601E)] rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Permitir métricas
-            </button>
+            <div className="analytics-consent-actions">
+              <button
+                className="ui-button ui-button--secondary"
+                onClick={() => handleChoice('necessary')}
+                type="button"
+              >
+                Usar apenas necessários
+              </button>
+              <button
+                className="ui-button ui-button--secondary"
+                onClick={() => setShowConfigModal(true)}
+                type="button"
+              >
+                Configurar
+              </button>
+              <button
+                className="ui-button ui-button--primary"
+                onClick={() => handleChoice('granted')}
+                type="button"
+              >
+                Permitir métricas
+              </button>
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      ) : (
+        <button
+          className="analytics-privacy-control ui-button ui-button--secondary"
+          onClick={() => setShowConfigModal(true)}
+          type="button"
+        >
+          Privacidade e métricas
+        </button>
+      )}
 
       {showConfigModal && (
         <div
           ref={configDialogRef}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="analytics-consent-dialog-backdrop"
           role="dialog"
           aria-modal="true"
           aria-labelledby="consent-config-title"
           tabIndex={-1}
         >
-          <div className="w-full max-w-lg p-6 bg-[var(--color-surface,#FFFFFF)] dark:bg-[var(--color-surface,#101610)] rounded-xl border border-[var(--color-border,#DDE3D9)] shadow-2xl space-y-4">
-            <h3 id="consent-config-title" className="text-lg font-bold">
-              Configurações de Privacidade
-            </h3>
+          <div className="analytics-consent-dialog">
+            <h2 id="consent-config-title">Configurações de Privacidade</h2>
 
-            <div className="space-y-3 text-sm">
-              <div className="p-3 border rounded-lg border-[var(--color-border,#DDE3D9)] bg-[var(--color-surface-subtle,#EFF2EC)] dark:bg-[var(--color-surface-subtle,#141C14)]">
-                <p className="font-semibold mb-1">
-                  Funcionamento Necessário (Sempre Ativo)
-                </p>
-                <p className="text-xs text-[var(--color-text-muted,#5E695A)]">
+            <div className="analytics-consent-options">
+              <section className="analytics-consent-option">
+                <strong>Funcionamento necessário — sempre ativo</strong>
+                <p>
                   Salva preferências no dispositivo, mantém mapas offline e
                   protege contra abusos. Nenhum dado comportamental é enviado.
                 </p>
-              </div>
+              </section>
 
-              <div className="p-3 border rounded-lg border-[var(--color-border,#DDE3D9)]">
-                <p className="font-semibold mb-1">
-                  Métricas Opcionais de Navegação
-                </p>
-                <p className="text-xs text-[var(--color-text-muted,#5E695A)]">
+              <section className="analytics-consent-option">
+                <strong>Métricas opcionais de navegação</strong>
+                <p>
                   Mede acessos a rotas, mapas e pontos de apoio de forma
                   pseudonimizada e agregada. Sem rastreamento de localização ou
                   dados pessoais.
                 </p>
-              </div>
+              </section>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="analytics-consent-actions">
               <button
+                className="ui-button ui-button--secondary"
                 data-autofocus
-                type="button"
                 onClick={() => handleChoice('necessary')}
-                className="px-4 py-2 text-sm font-medium border rounded-lg"
+                type="button"
               >
                 Apenas Necessários
               </button>
               <button
-                type="button"
+                className="ui-button ui-button--primary"
                 onClick={() => handleChoice('granted')}
-                className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary,#33601E)] rounded-lg"
+                type="button"
               >
                 Aceitar Todos
               </button>

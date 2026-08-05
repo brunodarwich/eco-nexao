@@ -1,81 +1,91 @@
-# Relatório de Go/No-Go do Piloto, Riscos Residenciais e Evidências — V5 (Congelamento & Contenção)
+# Relatório de Go/No-Go do Piloto, Riscos Residuais e Evidências — V7
 
-**Projeto:** Plataforma ECOnexão (MVP Multirregional — Piloto Pindobal/Santarém-Alter do Chão)  
-**Data da Avaliação:** 31 de Julho de 2026  
-**Responsável por Produto e Tecnologia:** Bruno (interino)  
-**Decisão Integrada de Go/No-Go:** **NO-GO (CONGELADO DEVIDO A ACHADOS P0/P1 E PORTÕES 0H ABERTOS)**
+**Projeto:** Plataforma ECOnexão (MVP multirregional — piloto Pindobal/Santarém-Alter do Chão)
+**Data da avaliação:** 5 de agosto de 2026
+**Responsável por produto e tecnologia:** Bruno (interino)
+**Decisão integrada:** **NO-GO — correções e verificação ainda abertas**
 
----
+## 1. Resumo executivo e separação por ambiente
 
-## 1. Resumo Executivo e Separação por Ambiente
+A revisão pós-implementação identificou achados de segurança, integridade transacional,
+privacidade, integração frontend/API, acessibilidade e governança. Os seeds, a revogação de
+analytics, o tema inicial e os estados de erro foram corrigidos e a suíte integrada automatizada
+passa. A integração real entre serviços, a validação de respostas contra OpenAPI, a validação
+manual de acessibilidade, os portões externos `0H` e o aceite humano continuam abertos. A decisão
+permanece **NO-GO**.
 
-A revisão pós-implementação identificou achados críticos de segurança, integridade transacional, privacidade, roteamento frontend/API, acessibilidade e governança. Conforme as regras de governança do projeto (`AGENTS.md` e `revisao-pos-mvp`), a declaração anterior de GO foi revertida e congelada em **NO-GO**.
+1. **Desenvolvimento local:** permitido para implementação e verificação orientadas pelas specs.
+2. **Homologação/staging:** **NO-GO** até conclusão verificada de `revisao-pos-mvp`, fechamento dos
+   portões aplicáveis e aceite humano.
+3. **Tráfego público:** **NO-GO** enquanto houver bloqueador técnico, operacional ou de governança.
 
-### Status da Avaliação por Ambiente:
+## 2. Estado técnico e portões
 
-1. **Ambiente Local de Desenvolvimento:**
-   - **Status:** Permitido exclusivamente para execução de suítes de teste e correções orientadas por especificação.
-2. **Ambiente de Homologação / Staging:**
-   - **Status:** **NO-GO**. Bloqueado até a conclusão verificada de todas as tarefas de `revisao-pos-mvp` (1 a 15) e encerramento formal dos portões `0H`.
-3. **Lançamento Público Aberto com Tráfego Real:**
-   - **Status:** **NO-GO**. Estritamente vedado qualquer tráfego público até resolução dos bloqueadores técnicos e aceite humano explícito.
+### A. Spec `revisao-pos-mvp`
 
----
+| Tarefas     | Estado em 05/08/2026                           | Observação                                                                                                                |
+| ----------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| T-01 a T-06 | concluídas na spec                             | confirmadas pela suíte automatizada atual                                                                                  |
+| T-07 e T-08 | parcialmente concluídas                        | clientes/schema corrigidos; integração com serviços separados e validação de respostas reais contra OpenAPI estão abertas |
+| T-09        | parcialmente concluída, com bloqueio explícito | edição de ator existente usa workflow real; cadastro manual de ator novo não possui contrato/endpoint e continua pelo CSV |
+| T-10 e T-11 | concluídas na spec                             | aguardam confirmação conjunta na regressão integrada                                                                      |
+| T-12        | aberta                                         | hook modal unificado; interação real de teclado e verificação manual ainda faltam                                         |
+| T-13        | em andamento                                   | estados principais implementados; testes integrados de tema e erros ainda faltam                                          |
+| T-14        | pendente                                       | `pnpm check` passou; migrations em ambiente integrado, acessibilidade e E2E com serviços separados continuam abertos      |
+| T-15        | pendente                                       | rastreabilidade final, riscos residuais, rollback e preparação do aceite humano                                           |
 
-## 2. Bloqueadores Abertos (Spec `revisao-pos-mvp`) e Portões `0H`
+O painel operacional possui três lacunas de contrato explicitadas na spec. O backend atual só cria
+revisão para ator existente; o botão de criação manual foi retirado até existir uma operação
+transacional para ator, localização, contato e vínculo de rota. A API pública de rotas não fornece
+estado editorial nem dimensões de prontidão, e o resumo de analytics não identifica pontos de
+apoio. Por isso a interface não calcula mais percentuais com campos ausentes nem apresenta
+completude cadastral como ranking de acesso. Novos pontos continuam entrando como rascunho pelo
+CSV; prontidão e ranking permanecem indisponíveis até terem contratos administrativos auditáveis.
 
-### A. Bloqueadores Técnicos (Tarefas 1 a 15 - Spec `revisao-pos-mvp`)
-- **T-01:** Moderação e auditoria não atômicas (risco de 500 com alteração persistida e sem auditoria).
-- **T-02:** Autorização regional e de escopo administrativo ausente/incompleta em endpoints protegidos.
-- **T-03:** Ingestão de analytics sem allowlist estrita e sem proteção contra PII, coordenadas e concorrência.
-- **T-04:** Ausência de rate limiting / throttling (`429`) em endpoints públicos de relatos e analytics.
-- **T-05:** Tabelas novas sem RLS (`relrowsecurity=true`) e ausência de expurgo de retenção atômico.
-- **T-06:** Relatos sem validação de alvo no domínio publicado e com mutabilidade indevida de conteúdo original.
-- **T-07:** Roteamento frontend/API descentralizado e falha de proxy entre Web, Admin e API em processos separados.
-- **T-08:** Divergência de OpenAPI/contratos TypeScript com respostas reais da API.
-- **T-09:** Editor administrativo simulando publicação local sem passar pelo workflow persistente auditado.
-- **T-10:** Comando de seed multirregional não atômico/idempotente com risco de rebaixamento de versão.
-- **T-11:** Revogação de consentimento de analytics sem interrupção imediata e expurgo de fila local.
-- **T-12:** Violições de WCAG 2.2 AA em diálogos (foco/Escape) e abas (navegação por setas/roving tabIndex).
-- **T-13:** Respeito incorreto a `prefers-color-scheme` e ausência de estados de erro diferenciados (401/403/429/500).
-- **T-14 & T-15:** Verificação integrada e validação de contratos pendentes.
+### B. Portões externos de homologação (`0H`)
 
-### B. Portões de Homologação Externos (`0H`)
-- **0H-1 (Privacidade & Governança):** Designação formal do Encarregado de Dados (DPO/LGPD), definição do controlador e canal do titular.
-- **0H-2 (Infraestrutura & Hospedagem):** Contratação e configuração de provedores de hospedagem da API/Frontend, banco gerenciado, tiles e CDN de mídia.
-- **0H-3 (Desempenho em Campo):** Validação dos orçamentos de desempenho (LCP <= 2.5s, INP <= 200ms, CLS <= 0.1 p75) em redes 3G/4G no piloto de Pindobal.
-- **0H-4 (Google Places API):** Chave restrita por IP/Referer, cotas, alertas de orçamento, termos, atribuição e aprovação prévia para ativação externa.
+- **0H-1 — privacidade e governança:** formalizar controlador, responsável por privacidade e canal
+  do titular.
+- **0H-2 — infraestrutura:** contratar e registrar hospedagem da API/frontend, tiles e mídia/CDN.
+- **0H-3 — desempenho em campo:** validar LCP, INP e CLS em condições reais do piloto.
+- **0H-4 — Google Places:** aprovar termos, credencial restrita, cotas, orçamento e atribuição antes
+  de ativação externa.
 
----
+## 3. Matriz de verificação
 
-## 3. Matriz de Evidências das Etapas de Verificação
+| Etapa | Descrição                                             | Estado   | Observação                                                    |
+| ----- | ----------------------------------------------------- | -------- | ------------------------------------------------------------- |
+| V1    | rastreabilidade e regressões por achado               | pendente | exige execução integrada e evidência final                    |
+| V2    | autorização por papel, ação, objeto e região          | pendente | testes focados existem; falta validação integrada             |
+| V3    | privacidade, throttling, RLS, retenção e concorrência | pendente | suíte Django passa; falta ensaio integrado de migrations/RLS |
+| V4    | contratos e integração real web/admin/API             | pendente | contratos sincronizados; serviços separados ainda pendentes  |
+| V5    | teclado, foco, tema, zoom e estados de erro           | pendente | interação manual/E2E ainda aberta                             |
+| V6    | riscos residuais, rollback e decisão humana           | pendente | agentes não assinam GO                                        |
 
-| Etapa | Descrição | Status | Evidências e Observações |
-| :--- | :--- | :--- | :--- |
-| **V1** | Matriz de rastreabilidade e validação de contratos | **Pendente `[ ]`** | Aguardando revalidação `pnpm contracts:check` pós-correções da spec. |
-| **V2** | Testes E2E, acessibilidade manual e navegação mobile | **Pendente `[ ]`** | Aguardando execução do Playwright em processos separados. |
-| **V3** | Backup, RLS, retenção, rollback de aplicação e conteúdo | **Pendente `[ ]`** | Aguardando validação de RLS e migrações atômicas. |
-| **V4** | Registro de evidências, riscos residuais e decisão de go/no-go | **Pendente `[ ]`** | Decisão mantida formalmente em **NO-GO**. |
+## 4. Evidências
 
----
+### Verificação atual — 05/08/2026
 
-## 4. Evidências da Linha de Base (Fase 0)
+- `pnpm check`: aprovado integralmente fora do sandbox com o Python 3.13 configurado.
+- Contratos OpenAPI/tipos, ESLint, Ruff, Prettier, typecheck e builds: aprovados.
+- Backend Django: 187 testes aprovados.
+- Web: 5 arquivos e 27 testes aprovados.
+- Admin: 14 arquivos e 56 testes aprovados.
+- E2E público: os dez cenários chegaram ao resultado observável de 8 aprovados e 2 ignorados em
+  desktop/mobile, mas o processo Playwright não encerrou antes do limite externo de 240 segundos.
+  Isso não substitui nem fecha o E2E com web, admin e API em serviços separados.
 
-- **Comando `pnpm check`:**
-  - `contracts:check`: Sucesso (OpenAPI e TypeScript sincronizados).
-  - `lint`: Sucesso (`apps/web`, `apps/admin`, e `ruff check` na API Django).
-  - `format:check`: Sucesso (145 arquivos formatados via Prettier e ruff).
-  - `typecheck`: Sucesso (`apps/web`, `apps/admin`).
-  - `test`: Sucesso (Web: 4/4 arquivos, 21 testes; Admin: 9/9 arquivos, 41 testes; API Django: 173 testes aprovados em 8.41s).
-  - `build`: Sucesso (Build de produção Next.js das duas aplicações `apps/web` e `apps/admin`).
-- **Comando `pnpm test:e2e`:**
-  - Execução no Playwright: 8 cenários aprovados, 2 ignorados (descoberta e layout responsivo em `chromium` e `mobile-chromium`). Tempo total 59.5s.
+### Linha de base histórica — 31/07/2026
 
----
+A linha de base V5 registrou `pnpm check` completo, 173 testes Django, 21 testes web, 41 testes
+admin e oito cenários E2E aprovados, com dois ignorados. Esses números são preservados como
+evidência histórica e não substituem a regressão exigida depois das mudanças atuais.
 
-## 5. Governança e Declaração de Aceite
+## 5. Governança e declaração de aceite
 
-> **IMPORTANTE:** Agentes e sistemas automatizados NÃO possuem autoridade para assinar o aceite humano ou converter a decisão para GO. A aprovação de homologação e produção é exclusiva do responsável humano.
+Agentes e sistemas automatizados podem preparar evidências, mas não podem converter a decisão para
+GO. Homologação e produção exigem fechamento técnico, análise separada dos portões `0H` e aceite
+humano explícito.
 
-**Estado Atual:** **NO-GO (SUBMETIDO PARA REVISÃO E CORREÇÃO)**  
-*Revisado em 31/07/2026.*
+**Estado atual:** **NO-GO — CORREÇÕES EM ANDAMENTO E VERIFICAÇÃO INTEGRADA PENDENTE**
+_Revisado em 05/08/2026._

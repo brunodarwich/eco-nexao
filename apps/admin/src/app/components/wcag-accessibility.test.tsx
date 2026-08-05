@@ -13,11 +13,16 @@ describe('Suíte de Acessibilidade WCAG 2.2 AA & Navegação por Teclado', () =>
     it('possui atributos role="dialog", aria-modal="true" e aria-labelledby', () => {
       const markup = renderToStaticMarkup(
         <PoiEditorModal
-          initialData={null}
+          initialData={{
+            actor: {
+              id: '00000000-0000-0000-0000-000000000002',
+              display_name: 'Ponto de teste',
+            },
+          }}
           isOpen={true}
           onClose={vi.fn()}
           onSave={vi.fn()}
-          regionSlug="santarem-alter-do-chao"
+          regionId="00000000-0000-0000-0000-000000000001"
           routeSlug="trilha-flona"
         />,
       )
@@ -110,18 +115,23 @@ describe('Suíte de Acessibilidade WCAG 2.2 AA & Navegação por Teclado', () =>
     it('garante que todos os controles do modal possuem labels associados e botões acessíveis', () => {
       const markup = renderToStaticMarkup(
         <PoiEditorModal
-          initialData={null}
+          initialData={{
+            actor: {
+              id: '00000000-0000-0000-0000-000000000002',
+              display_name: 'Ponto de teste',
+            },
+          }}
           isOpen={true}
           onClose={vi.fn()}
           onSave={vi.fn()}
-          regionSlug="santarem-alter-do-chao"
+          regionId="00000000-0000-0000-0000-000000000001"
           routeSlug="trilha-flona"
         />,
       )
 
       expect(markup).toContain('Nome Comercial / Exibição público *')
       expect(markup).toContain('Categoria *')
-      expect(markup).toContain('Status Editorial *')
+      expect(markup).toContain('Destino editorial')
       expect(markup).toContain('Endereço / Localidade')
       expect(markup).toContain('Telefone / WhatsApp Autorizado (E.164)')
       expect(markup).toContain('type="button"')

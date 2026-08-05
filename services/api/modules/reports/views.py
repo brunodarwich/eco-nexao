@@ -1,5 +1,5 @@
 from django.db import transaction
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -15,9 +15,14 @@ from modules.accounts.permissions import (
 )
 from modules.audit.models import AuditEvent
 from modules.audit.service import record_audit_event
+from modules.publishing.models import EditorialRevision
 
 from .models import PublicReport
-from .serializers import AdminReportSerializer, PublicReportCreateSerializer
+from .serializers import (
+    AdminReportSerializer,
+    DashboardSummarySerializer,
+    PublicReportCreateSerializer,
+)
 from .throttles import PublicReportCreateThrottle
 
 
@@ -147,3 +152,79 @@ def admin_moderate_report(request, report_id):
         AdminReportSerializer(updated_report, context={"request": request}).data,
         status=status.HTTP_200_OK,
     )
+
+
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="region_slug",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description="Slug da região para filtrar os contadores operacionais.",
+            required=False,
+        )
+    ],
+    responses={
+        200: DashboardSummarySerializer,
+        401: {"type": "object", "properties": {"detail": {"type": "string"}}},
+        403: {"type": "object", "properties": {"detail": {"type": "string"}}},
+        429: {"type": "object", "properties": {"detail": {"type": "string"}}},
+        500: {"type": "object", "properties": {"detail": {"type": "string"}}},
+    },
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def admin_dashboard_summary(request):
+    """
+    Retorna contadores operacionais consolidados sem dados pessoais (PII) por região.
+    """
+    if not (
+        has_admin_action(request.user, AdminAction.VIEW_AGGREGATES)
+        or has_admin_action(request.user, AdminAction.LIST_REPORTS)
+        or has_admin_action(request.user, AdminAction.VIEW_ANALYTICS)
+    ):
+        return Response({"detail": "Permissão negada."}, status=status.HTTP_403_FORBIDDEN)
+
+    roles = get_user_roles(request.user)
+    allowed_region_slugs = None
+    if AdminRole.ADMINISTRATOR not in roles:
+        allowed_region_slugs = set(get_user_region_slugs(request.user))
+
+    region_slug = request.query_params.get("region_slug")
+    if region_slug:
+        if allowed_region_slugs is not None and region_slug not in allowed_region_slugs:
+            return Response(
+                {"detail": "Você não tem permissão para acessar esta região."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+    reports_qs = PublicReport.objects.filter(status=PublicReport.Status.PENDING)
+    revisions_qs = EditorialRevision.objects.filter(status=EditorialRevision.Status.REVIEW)
+
+    if region_slug:
+        reports_qs = reports_qs.filter(region_slug=region_slug)
+        revisions_qs = revisions_qs.filter(region__slug=region_slug)
+    elif allowed_region_slugs is not None:
+        reports_qs = reports_qs.filter(region_slug__in=allowed_region_slugs)
+        revisions_qs = revisions_qs.filter(region__slug__in=allowed_region_slugs)
+
+    active_alerts_count = reports_qs.filter(
+        report_type=PublicReport.ReportType.SAFETY_WARNING
+    ).count()
+    priority_reports_count = reports_qs.filter(
+        report_type__in=[
+            PublicReport.ReportType.SAFETY_WARNING,
+            PublicReport.ReportType.CLOSED_LOCATION,
+        ]
+    ).count()
+    pending_revisions_count = revisions_qs.count()
+
+    serializer = DashboardSummarySerializer(
+        {
+            "region_slug": region_slug or "",
+            "priority_reports_count": priority_reports_count,
+            "active_alerts_count": active_alerts_count,
+            "pending_revisions_count": pending_revisions_count,
+        }
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)

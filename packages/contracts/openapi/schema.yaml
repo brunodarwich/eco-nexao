@@ -4,40 +4,94 @@ info:
   version: 1.0.0
   description: API pública e administrativa versionada da ECOnexão.
 paths:
-  /api/v1/admin/analytics/summary:
+  /api/v1/admin/analytics/operational:
     get:
-      operationId: api_v1_admin_analytics_summary_retrieve
-      description: |-
-        Visão resumida de analytics agregada para o painel administrativo.
-        Protegido por autenticação e livre de identificadores individuais.
+      operationId: retrieveAdminOperationalAnalytics
+      parameters:
+        - in: query
+          name: end
+          schema:
+            type: string
+        - in: query
+          name: region_slug
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: route_slug
+          schema:
+            type: string
+        - in: query
+          name: start
+          schema:
+            type: string
       tags:
-      - api
+        - Admin analytics
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/OperationalAnalyticsResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  total_events:
-                    type: integer
-                  aggregates:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                        event_name:
-                          type: string
-                        region_slug:
-                          type: string
-                        route_slug:
-                          type: string
-                        count:
-                          type: integer
+                  detail:
+                    type: string
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+  /api/v1/admin/analytics/summary:
+    get:
+      operationId: retrieveAdminAnalyticsSummary
+      tags:
+        - Admin analytics
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummaryResponse'
           description: ''
         '401':
           content:
@@ -61,63 +115,66 @@ paths:
     get:
       operationId: listAdminAuditEvents
       parameters:
-      - in: query
-        name: action
-        schema:
-          enum:
-          - auth.login
-          - auth.logout
-          - editorial.approve
-          - publication.publish
-          - publication.restore
-          - external.discovery
-          - import.commit
-          - report.moderate
-          type: string
-          minLength: 1
-        description: |-
-          * `auth.login` - Login administrativo
-          * `auth.logout` - Logout administrativo
-          * `editorial.approve` - Aprovação editorial
-          * `publication.publish` - Publicação
-          * `publication.restore` - Restauração
-          * `external.discovery` - Descoberta externa
-          * `import.commit` - Confirmação de importação
-          * `report.moderate` - Moderação de relato
-      - in: query
-        name: limit
-        schema:
-          type: integer
-          maximum: 100
-          minimum: 1
-          default: 50
-      - in: query
-        name: offset
-        schema:
-          type: integer
-          minimum: 0
-          default: 0
-      - in: query
-        name: region_id
-        schema:
-          type: string
-          format: uuid
-      - in: query
-        name: target_id
-        schema:
-          type: string
-          maxLength: 128
-          minLength: 1
-      - in: query
-        name: target_type
-        schema:
-          type: string
-          maxLength: 64
-          minLength: 1
+        - in: query
+          name: action
+          schema:
+            enum:
+              - auth.login
+              - auth.logout
+              - editorial.approve
+              - publication.publish
+              - publication.restore
+              - external.discovery
+              - import.commit
+              - report.moderate
+              - catalog.support_point.create
+            type: string
+            x-spec-enum-id: 64a9d5428456767d
+            minLength: 1
+          description: |-
+            * `auth.login` - Login administrativo
+            * `auth.logout` - Logout administrativo
+            * `editorial.approve` - Aprovação editorial
+            * `publication.publish` - Publicação
+            * `publication.restore` - Restauração
+            * `external.discovery` - Descoberta externa
+            * `import.commit` - Confirmação de importação
+            * `report.moderate` - Moderação de relato
+            * `catalog.support_point.create` - Cadastro de ponto de apoio
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            maximum: 100
+            minimum: 1
+            default: 50
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: region_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: target_id
+          schema:
+            type: string
+            maxLength: 128
+            minLength: 1
+        - in: query
+          name: target_type
+          schema:
+            type: string
+            maxLength: 64
+            minLength: 1
       tags:
-      - Admin audit
+        - Admin audit
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -127,13 +184,25 @@ paths:
                 items:
                   $ref: '#/components/schemas/AuditEvent'
           description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditError401'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditError403'
+          description: ''
   /api/v1/admin/auth/csrf:
     get:
       operationId: getAdminCsrfToken
       tags:
-      - Admin auth
+        - Admin auth
       security:
-      - {}
+        - {}
       responses:
         '200':
           content:
@@ -145,7 +214,7 @@ paths:
     post:
       operationId: loginAdmin
       tags:
-      - Admin auth
+        - Admin auth
       requestBody:
         content:
           application/json:
@@ -159,7 +228,7 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
         required: true
       security:
-      - {}
+        - {}
       responses:
         '200':
           content:
@@ -167,14 +236,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionResponse'
           description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginError401'
+          description: ''
   /api/v1/admin/auth/logout:
     post:
       operationId: logoutAdmin
       tags:
-      - Admin auth
+        - Admin auth
       security:
-      - cookieAuth: []
-      - {}
+        - cookieAuth: []
+        - {}
       responses:
         '200':
           content:
@@ -186,10 +261,10 @@ paths:
     get:
       operationId: getAdminSession
       tags:
-      - Admin auth
+        - Admin auth
       security:
-      - cookieAuth: []
-      - {}
+        - cookieAuth: []
+        - {}
       responses:
         '200':
           content:
@@ -197,11 +272,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionResponse'
           description: ''
+  /api/v1/admin/dashboard/summary:
+    get:
+      operationId: api_v1_admin_dashboard_summary_retrieve
+      description:
+        Retorna contadores operacionais consolidados sem dados pessoais
+        (PII) por região.
+      parameters:
+        - in: query
+          name: region_slug
+          schema:
+            type: string
+          description: Slug da região para filtrar os contadores operacionais.
+      tags:
+        - api
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummary'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
   /api/v1/admin/discovery/google-places/preview:
     post:
       operationId: previewGooglePlacesCandidates
       tags:
-      - Admin discovery
+        - Admin discovery
       requestBody:
         content:
           application/json:
@@ -215,7 +349,7 @@ paths:
               $ref: '#/components/schemas/GooglePlacesPreviewRequest'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -251,14 +385,14 @@ paths:
     post:
       operationId: restorePublicationVersion
       parameters:
-      - in: path
-        name: publication_id
-        schema:
-          type: string
-          format: uuid
-        required: true
+        - in: path
+          name: publication_id
+          schema:
+            type: string
+            format: uuid
+          required: true
       tags:
-      - Admin editorial
+        - Admin editorial
       requestBody:
         content:
           application/json:
@@ -272,7 +406,7 @@ paths:
               $ref: '#/components/schemas/RestorePublicationVersion'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -302,7 +436,7 @@ paths:
     post:
       operationId: createEditorialRevision
       tags:
-      - Admin editorial
+        - Admin editorial
       requestBody:
         content:
           application/json:
@@ -316,7 +450,7 @@ paths:
               $ref: '#/components/schemas/CreateEditorialRevision'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '201':
           content:
@@ -340,16 +474,16 @@ paths:
     get:
       operationId: retrieveEditorialRevision
       parameters:
-      - in: path
-        name: revision_id
-        schema:
-          type: string
-          format: uuid
-        required: true
+        - in: path
+          name: revision_id
+          schema:
+            type: string
+            format: uuid
+          required: true
       tags:
-      - Admin editorial
+        - Admin editorial
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -360,14 +494,14 @@ paths:
     patch:
       operationId: updateEditorialRevision
       parameters:
-      - in: path
-        name: revision_id
-        schema:
-          type: string
-          format: uuid
-        required: true
+        - in: path
+          name: revision_id
+          schema:
+            type: string
+            format: uuid
+          required: true
       tags:
-      - Admin editorial
+        - Admin editorial
       requestBody:
         content:
           application/json:
@@ -380,7 +514,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedUpdateEditorialRevision'
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -398,14 +532,14 @@ paths:
     post:
       operationId: approveEditorialRevision
       parameters:
-      - in: path
-        name: revision_id
-        schema:
-          type: string
-          format: uuid
-        required: true
+        - in: path
+          name: revision_id
+          schema:
+            type: string
+            format: uuid
+          required: true
       tags:
-      - Admin editorial
+        - Admin editorial
       requestBody:
         content:
           application/json:
@@ -419,7 +553,7 @@ paths:
               $ref: '#/components/schemas/RevisionTransition'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -443,14 +577,14 @@ paths:
     post:
       operationId: publishEditorialRevision
       parameters:
-      - in: path
-        name: revision_id
-        schema:
-          type: string
-          format: uuid
-        required: true
+        - in: path
+          name: revision_id
+          schema:
+            type: string
+            format: uuid
+          required: true
       tags:
-      - Admin editorial
+        - Admin editorial
       requestBody:
         content:
           application/json:
@@ -464,7 +598,7 @@ paths:
               $ref: '#/components/schemas/PublishEditorialRevision'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -494,14 +628,14 @@ paths:
     post:
       operationId: returnEditorialRevision
       parameters:
-      - in: path
-        name: revision_id
-        schema:
-          type: string
-          format: uuid
-        required: true
+        - in: path
+          name: revision_id
+          schema:
+            type: string
+            format: uuid
+          required: true
       tags:
-      - Admin editorial
+        - Admin editorial
       requestBody:
         content:
           application/json:
@@ -515,7 +649,7 @@ paths:
               $ref: '#/components/schemas/ReturnEditorialRevision'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -533,14 +667,14 @@ paths:
     post:
       operationId: submitEditorialRevision
       parameters:
-      - in: path
-        name: revision_id
-        schema:
-          type: string
-          format: uuid
-        required: true
+        - in: path
+          name: revision_id
+          schema:
+            type: string
+            format: uuid
+          required: true
       tags:
-      - Admin editorial
+        - Admin editorial
       requestBody:
         content:
           application/json:
@@ -554,7 +688,7 @@ paths:
               $ref: '#/components/schemas/RevisionTransition'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -572,7 +706,7 @@ paths:
     post:
       operationId: commitCatalogCsv
       tags:
-      - Admin imports
+        - Admin imports
       requestBody:
         content:
           multipart/form-data:
@@ -583,7 +717,7 @@ paths:
               $ref: '#/components/schemas/CatalogCsvCommitRequest'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -613,7 +747,7 @@ paths:
     post:
       operationId: validateCatalogCsv
       tags:
-      - Admin imports
+        - Admin imports
       requestBody:
         content:
           multipart/form-data:
@@ -624,7 +758,7 @@ paths:
               $ref: '#/components/schemas/CatalogCsvValidationRequest'
         required: true
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -637,9 +771,9 @@ paths:
       operationId: api_v1_admin_reports_list
       description: Lista relatos da comunidade para moderação e triagem.
       tags:
-      - api
+        - api
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -672,14 +806,14 @@ paths:
       operationId: api_v1_admin_reports_partial_update
       description: Atualiza o status de moderação e nota técnica de um relato.
       parameters:
-      - in: path
-        name: report_id
-        schema:
-          type: string
-          format: uuid
-        required: true
+        - in: path
+          name: report_id
+          schema:
+            type: string
+            format: uuid
+          required: true
       tags:
-      - api
+        - api
       requestBody:
         content:
           application/json:
@@ -692,7 +826,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedAdminReport'
       security:
-      - cookieAuth: []
+        - cookieAuth: []
       responses:
         '200':
           content:
@@ -734,14 +868,77 @@ paths:
                   detail:
                     type: string
           description: ''
+  /api/v1/admin/routes/readiness:
+    get:
+      operationId: listAdminRouteReadiness
+      description:
+        DTO operacional, deliberadamente separado de contratos públicos
+        de rota.
+      parameters:
+        - in: query
+          name: region_slug
+          schema:
+            type: string
+          required: true
+      tags:
+        - Admin routes
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionRouteReadinessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+          description: ''
   /api/v1/events/batch:
     post:
-      operationId: api_v1_events_batch_create
-      description: |-
-        Ingestão pública em lote de eventos de analytics pseudonimizados.
-        Aplica allowlist estrita e rejeição de dados pessoais ou coordenadas.
+      operationId: createPublicAnalyticsBatch
       tags:
-      - api
+        - Analytics
       requestBody:
         content:
           application/json:
@@ -755,19 +952,14 @@ paths:
               $ref: '#/components/schemas/AnalyticsBatch'
         required: true
       security:
-      - cookieAuth: []
-      - {}
+        - cookieAuth: []
+        - {}
       responses:
         '201':
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  received:
-                    type: integer
-                  status:
-                    type: string
+                $ref: '#/components/schemas/AnalyticsBatchResponse'
           description: ''
         '400':
           content:
@@ -775,6 +967,15 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
           description: ''
         '429':
           content:
@@ -789,7 +990,7 @@ paths:
     get:
       operationId: api_v1_health_retrieve
       tags:
-      - api
+        - api
       responses:
         '200':
           content:
@@ -807,7 +1008,7 @@ paths:
         Criação pública de relato de informação incorreta.
         Protegido contra autopublicação e abusos de tamanho.
       tags:
-      - api
+        - api
       requestBody:
         content:
           application/json:
@@ -821,8 +1022,8 @@ paths:
               $ref: '#/components/schemas/PublicReportCreate'
         required: true
       security:
-      - cookieAuth: []
-      - {}
+        - cookieAuth: []
+        - {}
       responses:
         '201':
           content:
@@ -852,7 +1053,7 @@ paths:
       description: Retorna somente regiões disponíveis para navegação pública.
       summary: Listar regiões publicadas
       tags:
-      - Regions
+        - Regions
       responses:
         '200':
           content:
@@ -867,13 +1068,13 @@ paths:
       operationId: listPublishedRegionRoutes
       summary: Listar rotas publicadas de uma região
       parameters:
-      - in: path
-        name: region_slug
-        schema:
-          type: string
-        required: true
+        - in: path
+          name: region_slug
+          schema:
+            type: string
+          required: true
       tags:
-      - Routes
+        - Routes
       responses:
         '200':
           content:
@@ -888,18 +1089,18 @@ paths:
       operationId: retrievePublishedRoute
       summary: Obter uma rota publicada
       parameters:
-      - in: path
-        name: region_slug
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: route_slug
-        schema:
-          type: string
-        required: true
+        - in: path
+          name: region_slug
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: route_slug
+          schema:
+            type: string
+          required: true
       tags:
-      - Routes
+        - Routes
       responses:
         '200':
           content:
@@ -910,22 +1111,23 @@ paths:
   /api/v1/regions/{region_slug}/routes/{route_slug}/catalog:
     get:
       operationId: listPublishedRouteCatalog
-      description: Retorna somente atores publicados, localizações visíveis na região
+      description:
+        Retorna somente atores publicados, localizações visíveis na região
         e contatos autorizados para publicação.
       summary: Listar o catálogo público contextual da rota
       parameters:
-      - in: path
-        name: region_slug
-        schema:
-          type: string
-        required: true
-      - in: path
-        name: route_slug
-        schema:
-          type: string
-        required: true
+        - in: path
+          name: region_slug
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: route_slug
+          schema:
+            type: string
+          required: true
       tags:
-      - Catalog
+        - Catalog
       responses:
         '200':
           content:
@@ -944,122 +1146,122 @@ paths:
         - YAML: application/vnd.oai.openapi
         - JSON: application/vnd.oai.openapi+json
       parameters:
-      - in: query
-        name: format
-        schema:
-          type: string
-          enum:
-          - json
-          - yaml
-      - in: query
-        name: lang
-        schema:
-          type: string
-          enum:
-          - af
-          - ar
-          - ar-dz
-          - ast
-          - az
-          - be
-          - bg
-          - bn
-          - br
-          - bs
-          - ca
-          - ckb
-          - cs
-          - cy
-          - da
-          - de
-          - dsb
-          - el
-          - en
-          - en-au
-          - en-gb
-          - eo
-          - es
-          - es-ar
-          - es-co
-          - es-mx
-          - es-ni
-          - es-ve
-          - et
-          - eu
-          - fa
-          - fi
-          - fr
-          - fy
-          - ga
-          - gd
-          - gl
-          - he
-          - hi
-          - hr
-          - hsb
-          - hu
-          - hy
-          - ia
-          - id
-          - ig
-          - io
-          - is
-          - it
-          - ja
-          - ka
-          - kab
-          - kk
-          - km
-          - kn
-          - ko
-          - ky
-          - lb
-          - lt
-          - lv
-          - mk
-          - ml
-          - mn
-          - mr
-          - ms
-          - my
-          - nb
-          - ne
-          - nl
-          - nn
-          - os
-          - pa
-          - pl
-          - pt
-          - pt-br
-          - ro
-          - ru
-          - sk
-          - sl
-          - sq
-          - sr
-          - sr-latn
-          - sv
-          - sw
-          - ta
-          - te
-          - tg
-          - th
-          - tk
-          - tr
-          - tt
-          - udm
-          - ug
-          - uk
-          - ur
-          - uz
-          - vi
-          - zh-hans
-          - zh-hant
+        - in: query
+          name: format
+          schema:
+            type: string
+            enum:
+              - json
+              - yaml
+        - in: query
+          name: lang
+          schema:
+            type: string
+            enum:
+              - af
+              - ar
+              - ar-dz
+              - ast
+              - az
+              - be
+              - bg
+              - bn
+              - br
+              - bs
+              - ca
+              - ckb
+              - cs
+              - cy
+              - da
+              - de
+              - dsb
+              - el
+              - en
+              - en-au
+              - en-gb
+              - eo
+              - es
+              - es-ar
+              - es-co
+              - es-mx
+              - es-ni
+              - es-ve
+              - et
+              - eu
+              - fa
+              - fi
+              - fr
+              - fy
+              - ga
+              - gd
+              - gl
+              - he
+              - hi
+              - hr
+              - hsb
+              - hu
+              - hy
+              - ia
+              - id
+              - ig
+              - io
+              - is
+              - it
+              - ja
+              - ka
+              - kab
+              - kk
+              - km
+              - kn
+              - ko
+              - ky
+              - lb
+              - lt
+              - lv
+              - mk
+              - ml
+              - mn
+              - mr
+              - ms
+              - my
+              - nb
+              - ne
+              - nl
+              - nn
+              - os
+              - pa
+              - pl
+              - pt
+              - pt-br
+              - ro
+              - ru
+              - sk
+              - sl
+              - sq
+              - sr
+              - sr-latn
+              - sv
+              - sw
+              - ta
+              - te
+              - tg
+              - th
+              - tk
+              - tr
+              - tt
+              - udm
+              - ug
+              - uk
+              - ur
+              - uz
+              - vi
+              - zh-hans
+              - zh-hant
       tags:
-      - api
+        - api
       security:
-      - cookieAuth: []
-      - {}
+        - cookieAuth: []
+        - {}
       responses:
         '200':
           content:
@@ -1080,42 +1282,136 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/admin/catalog/support-points/:
+    post:
+      operationId: createAdminSupportPoint
+      description: |-
+        Cria transacionalmente um ponto de apoio administrativo como rascunho.
+        A operação nunca publica, envia para revisão ou mescla duplicatas automaticamente.
+        Este contrato antecede a implementação do endpoint e deve ser refletido nas anotações
+        Django antes da ativação da rota.
+      tags:
+        - Admin catalog
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          description:
+            UUID v4 reutilizado somente pelo mesmo usuário, região e payload
+            por 24 horas.
+          schema:
+            type: string
+            format: uuid
+        - in: header
+          name: X-CSRFToken
+          required: true
+          description: Token CSRF correspondente à sessão administrativa.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportPointCreateRequest'
+      security:
+        - cookieAuth: []
+      responses:
+        '201':
+          description: Ponto de apoio criado exclusivamente como rascunho.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateResponse'
+        '400':
+          description:
+            Corpo, CSRF, coordenadas, contatos, identificadores ou relações
+            inválidos.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '401':
+          description: Sessão administrativa ausente ou expirada.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '403':
+          description: Papel, ação, escopo regional ou proteção CSRF insuficiente.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '409':
+          description: Duplicidade, conflito idempotente ou concorrência detectada.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '429':
+          description: Limite configurado para criação manual excedido.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+            Retry-After:
+              required: true
+              schema:
+                type: integer
+                minimum: 1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '500':
+          description: Falha interna segura; nenhuma parte do agregado permanece gravada.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
 components:
   schemas:
-    ActionEnum:
-      enum:
-      - auth.login
-      - auth.logout
-      - editorial.approve
-      - publication.publish
-      - publication.restore
-      - external.discovery
-      - import.commit
-      - report.moderate
-      type: string
-      description: |-
-        * `auth.login` - Login administrativo
-        * `auth.logout` - Logout administrativo
-        * `editorial.approve` - Aprovação editorial
-        * `publication.publish` - Publicação
-        * `publication.restore` - Restauração
-        * `external.discovery` - Descoberta externa
-        * `import.commit` - Confirmação de importação
-        * `report.moderate` - Moderação de relato
-    ActorKindEnum:
-      enum:
-      - business
-      - individual_provider
-      - community
-      - institution
-      - support
-      type: string
-      description: |-
-        * `business` - Empresa
-        * `individual_provider` - Prestador individual
-        * `community` - Comunidade
-        * `institution` - Instituição
-        * `support` - Ponto de apoio
     AdminIdentity:
       type: object
       properties:
@@ -1137,11 +1433,11 @@ components:
             type: string
             pattern: ^[-a-zA-Z0-9_]+$
       required:
-      - actions
-      - id
-      - region_slugs
-      - roles
-      - username
+        - actions
+        - id
+        - region_slugs
+        - roles
+        - username
     AdminReport:
       type: object
       properties:
@@ -1150,12 +1446,32 @@ components:
           format: uuid
           readOnly: true
         report_type:
-          allOf:
-          - $ref: '#/components/schemas/ReportTypeEnum'
+          enum:
+            - incorrect_info
+            - closed_location
+            - wrong_contact
+            - safety_warning
+            - other
+          type: string
+          description: |-
+            * `incorrect_info` - Informação Incorreta
+            * `closed_location` - Local Fechado ou Inacessível
+            * `wrong_contact` - Contato Desatualizado
+            * `safety_warning` - Alerta de Segurança
+            * `other` - Outro Assunto
+          x-spec-enum-id: 7b3ed7b698175558
           readOnly: true
         target_type:
-          allOf:
-          - $ref: '#/components/schemas/TargetTypeEf3Enum'
+          enum:
+            - route
+            - actor
+            - general
+          type: string
+          description: |-
+            * `route` - Rota
+            * `actor` - Ator / Ponto Local
+            * `general` - Geral
+          x-spec-enum-id: ef3068de33b99aeb
           readOnly: true
         target_id:
           type: string
@@ -1175,7 +1491,18 @@ components:
           type: string
           readOnly: true
         status:
-          $ref: '#/components/schemas/AdminReportStatusEnum'
+          enum:
+            - pending
+            - reviewed
+            - rejected
+            - actioned
+          type: string
+          description: |-
+            * `pending` - Pendente
+            * `reviewed` - Revisado
+            * `rejected` - Rejeitado
+            * `actioned` - Ação Concluída
+          x-spec-enum-id: 245af38ac7ced752
         moderation_note:
           type: string
         created_at:
@@ -1187,28 +1514,16 @@ components:
           format: date-time
           readOnly: true
       required:
-      - created_at
-      - description
-      - id
-      - region_slug
-      - report_type
-      - reporter_contact
-      - target_id
-      - target_slug
-      - target_type
-      - updated_at
-    AdminReportStatusEnum:
-      enum:
-      - pending
-      - reviewed
-      - rejected
-      - actioned
-      type: string
-      description: |-
-        * `pending` - Pendente
-        * `reviewed` - Revisado
-        * `rejected` - Rejeitado
-        * `actioned` - Ação Concluída
+        - created_at
+        - description
+        - id
+        - region_slug
+        - report_type
+        - reporter_contact
+        - target_id
+        - target_slug
+        - target_type
+        - updated_at
     Alert:
       type: object
       properties:
@@ -1217,7 +1532,16 @@ components:
           format: uuid
           readOnly: true
         severity:
-          $ref: '#/components/schemas/AlertSeverityEnum'
+          enum:
+            - info
+            - warning
+            - critical
+          type: string
+          description: |-
+            * `info` - Informativo
+            * `warning` - Atenção
+            * `critical` - Crítico
+          x-spec-enum-id: f57d55d8feea7d7d
         title:
           type: string
           maxLength: 160
@@ -1237,31 +1561,35 @@ components:
           format: date-time
           readOnly: true
       required:
-      - description
-      - id
-      - severity
-      - starts_at
-      - title
-      - updated_at
-    AlertSeverityEnum:
-      enum:
-      - info
-      - warning
-      - critical
-      type: string
-      description: |-
-        * `info` - Informativo
-        * `warning` - Atenção
-        * `critical` - Crítico
+        - description
+        - id
+        - severity
+        - starts_at
+        - title
+        - updated_at
     AnalyticsBatch:
       type: object
       properties:
+        consent_granted:
+          type: boolean
         events:
           type: array
           items:
             $ref: '#/components/schemas/AnalyticsEventInput'
       required:
-      - events
+        - consent_granted
+        - events
+    AnalyticsBatchResponse:
+      type: object
+      properties:
+        received:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+      required:
+        - received
+        - status
     AnalyticsEventInput:
       type: object
       properties:
@@ -1278,26 +1606,6 @@ components:
         occurred_at:
           type: string
           format: date-time
-        anonymous_id:
-          type: string
-          format: uuid
-        session_id:
-          type: string
-          format: uuid
-          nullable: true
-        consent_id:
-          type: string
-          format: uuid
-          nullable: true
-        consent_version:
-          type: string
-          maxLength: 16
-        app_version:
-          type: string
-          maxLength: 32
-        screen_name:
-          type: string
-          maxLength: 64
         region_id:
           type: string
           maxLength: 64
@@ -1307,30 +1615,64 @@ components:
         actor_id:
           type: string
           maxLength: 64
-        stage_id:
-          type: string
-          maxLength: 64
-        source:
-          type: string
-          maxLength: 64
-        campaign_id:
-          type: string
-          maxLength: 64
-        device_class:
-          type: string
-          maxLength: 32
-        network_class:
-          type: string
-          maxLength: 32
-        display_mode:
-          type: string
-          maxLength: 32
-        properties: {}
       required:
-      - anonymous_id
-      - event_id
-      - event_name
-      - occurred_at
+        - event_id
+        - event_name
+        - occurred_at
+        - region_id
+    AnalyticsMetric:
+      type: object
+      properties:
+        event_name:
+          enum:
+            - contact_opened
+            - offline_download_completed
+            - route_opened
+            - session_opened
+          type: string
+          description: |-
+            * `contact_opened` - contact_opened
+            * `offline_download_completed` - offline_download_completed
+            * `route_opened` - route_opened
+            * `session_opened` - session_opened
+          x-spec-enum-id: 1d9eb15ba22b8db6
+        count:
+          type: integer
+          minimum: 10
+          nullable: true
+        suppressed:
+          type: boolean
+      required:
+        - count
+        - event_name
+        - suppressed
+    AnalyticsSummaryResponse:
+      type: object
+      properties:
+        total_events:
+          type: integer
+          minimum: 0
+        aggregates:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyAnalyticsAggregate'
+      required:
+        - aggregates
+        - total_events
+    AuditError401:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+    AuditError403:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
     AuditEvent:
       type: object
       properties:
@@ -1347,8 +1689,28 @@ components:
           readOnly: true
           nullable: true
         action:
-          allOf:
-          - $ref: '#/components/schemas/ActionEnum'
+          enum:
+            - auth.login
+            - auth.logout
+            - editorial.approve
+            - publication.publish
+            - publication.restore
+            - external.discovery
+            - import.commit
+            - report.moderate
+            - catalog.support_point.create
+          type: string
+          description: |-
+            * `auth.login` - Login administrativo
+            * `auth.logout` - Logout administrativo
+            * `editorial.approve` - Aprovação editorial
+            * `publication.publish` - Publicação
+            * `publication.restore` - Restauração
+            * `external.discovery` - Descoberta externa
+            * `import.commit` - Confirmação de importação
+            * `report.moderate` - Moderação de relato
+            * `catalog.support_point.create` - Cadastro de ponto de apoio
+          x-spec-enum-id: 64a9d5428456767d
           readOnly: true
         target_type:
           type: string
@@ -1366,25 +1728,28 @@ components:
         metadata:
           readOnly: true
         result:
-          allOf:
-          - $ref: '#/components/schemas/ResultEnum'
+          enum:
+            - success
+          type: string
+          description: '* `success` - Sucesso'
+          x-spec-enum-id: b31de559247f95d1
           readOnly: true
         occurred_at:
           type: string
           format: date-time
           readOnly: true
       required:
-      - action
-      - actor_id
-      - id
-      - metadata
-      - occurred_at
-      - reason
-      - region_id
-      - request_id
-      - result
-      - target_id
-      - target_type
+        - action
+        - actor_id
+        - id
+        - metadata
+        - occurred_at
+        - reason
+        - region_id
+        - request_id
+        - result
+        - target_id
+        - target_type
     CatalogCsvCommitRequest:
       type: object
       properties:
@@ -1400,15 +1765,22 @@ components:
         confirmed:
           type: boolean
       required:
-      - confirmed
-      - file
-      - idempotency_key
-      - sha256
+        - confirmed
+        - file
+        - idempotency_key
+        - sha256
     CatalogCsvIssue:
       type: object
       properties:
         severity:
-          $ref: '#/components/schemas/CatalogCsvIssueSeverityEnum'
+          enum:
+            - error
+            - warning
+          type: string
+          description: |-
+            * `error` - error
+            * `warning` - warning
+          x-spec-enum-id: 81719efa66e0f221
         code:
           type: string
         line:
@@ -1420,19 +1792,11 @@ components:
         message:
           type: string
       required:
-      - code
-      - column
-      - line
-      - message
-      - severity
-    CatalogCsvIssueSeverityEnum:
-      enum:
-      - error
-      - warning
-      type: string
-      description: |-
-        * `error` - error
-        * `warning` - warning
+        - code
+        - column
+        - line
+        - message
+        - severity
     CatalogCsvPreview:
       type: object
       properties:
@@ -1450,10 +1814,10 @@ components:
           items:
             $ref: '#/components/schemas/CatalogCsvPreviewRow'
       required:
-      - archive_count
-      - create_count
-      - rows
-      - update_count
+        - archive_count
+        - create_count
+        - rows
+        - update_count
     CatalogCsvPreviewRow:
       type: object
       properties:
@@ -1463,11 +1827,20 @@ components:
         external_id:
           type: string
         operation:
-          $ref: '#/components/schemas/OperationEnum'
+          enum:
+            - create
+            - update
+            - archive
+          type: string
+          description: |-
+            * `create` - create
+            * `update` - update
+            * `archive` - archive
+          x-spec-enum-id: e67299c5cb7f9a39
       required:
-      - external_id
-      - line
-      - operation
+        - external_id
+        - line
+        - operation
     CatalogCsvValidationRequest:
       type: object
       properties:
@@ -1475,7 +1848,7 @@ components:
           type: string
           format: uri
       required:
-      - file
+        - file
     CatalogCsvValidationResponse:
       type: object
       properties:
@@ -1501,17 +1874,17 @@ components:
             $ref: '#/components/schemas/CatalogCsvIssue'
         preview:
           allOf:
-          - $ref: '#/components/schemas/CatalogCsvPreview'
+            - $ref: '#/components/schemas/CatalogCsvPreview'
           nullable: true
       required:
-      - error_count
-      - issues
-      - issues_truncated
-      - preview
-      - row_count
-      - sha256
-      - valid
-      - warning_count
+        - error_count
+        - issues
+        - issues_truncated
+        - preview
+        - row_count
+        - sha256
+        - valid
+        - warning_count
     CatalogImportCommitError:
       type: object
       properties:
@@ -1529,10 +1902,10 @@ components:
           type: string
           format: uuid
       required:
-      - code
-      - field_errors
-      - message
-      - request_id
+        - code
+        - field_errors
+        - message
+        - request_id
     CatalogImportCommitResponse:
       type: object
       properties:
@@ -1540,7 +1913,11 @@ components:
           type: string
           format: uuid
         status:
-          $ref: '#/components/schemas/CatalogImportCommitResponseStatusEnum'
+          enum:
+            - committed
+          type: string
+          description: '* `committed` - committed'
+          x-spec-enum-id: 0d5f4600bcd98f3f
         replayed:
           type: boolean
         sha256:
@@ -1565,40 +1942,30 @@ components:
           type: string
           format: date-time
       required:
-      - archive_count
-      - committed_at
-      - create_count
-      - id
-      - replayed
-      - row_count
-      - sha256
-      - status
-      - update_count
-      - warning_count
-    CatalogImportCommitResponseStatusEnum:
-      enum:
-      - committed
-      type: string
-      description: '* `committed` - committed'
-    ChannelTypeEnum:
-      enum:
-      - phone
-      - whatsapp
-      - email
-      - website
-      - instagram
-      type: string
-      description: |-
-        * `phone` - Telefone
-        * `whatsapp` - WhatsApp
-        * `email` - E-mail
-        * `website` - Site
-        * `instagram` - Instagram
+        - archive_count
+        - committed_at
+        - create_count
+        - id
+        - replayed
+        - row_count
+        - sha256
+        - status
+        - update_count
+        - warning_count
     CreateEditorialRevision:
       type: object
       properties:
         target_type:
-          $ref: '#/components/schemas/TargetTypeFdcEnum'
+          enum:
+            - region
+            - route
+            - actor
+          type: string
+          description: |-
+            * `region` - Região
+            * `route` - Rota
+            * `actor` - Ator
+          x-spec-enum-id: fdccaf6d28316674
         target_id:
           type: string
           format: uuid
@@ -1608,26 +1975,53 @@ components:
           nullable: true
         snapshot: {}
       required:
-      - snapshot
-      - target_id
-      - target_type
+        - snapshot
+        - target_id
+        - target_type
     CsrfResponse:
       type: object
       properties:
         csrf_token:
           type: string
       required:
-      - csrf_token
-    DifficultyEnum:
-      enum:
-      - easy
-      - moderate
-      - hard
-      type: string
-      description: |-
-        * `easy` - Fácil
-        * `moderate` - Moderada
-        * `hard` - Difícil
+        - csrf_token
+    DailyAnalyticsAggregate:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        event_name:
+          type: string
+        region_slug:
+          type: string
+        route_slug:
+          type: string
+        count:
+          type: integer
+          minimum: 0
+      required:
+        - count
+        - date
+        - event_name
+        - region_slug
+        - route_slug
+    DashboardSummary:
+      type: object
+      properties:
+        region_slug:
+          type: string
+        priority_reports_count:
+          type: integer
+        active_alerts_count:
+          type: integer
+        pending_revisions_count:
+          type: integer
+      required:
+        - active_alerts_count
+        - pending_revisions_count
+        - priority_reports_count
+        - region_slug
     EditorialRevision:
       type: object
       properties:
@@ -1640,8 +2034,16 @@ components:
           format: uuid
           readOnly: true
         target_type:
-          allOf:
-          - $ref: '#/components/schemas/TargetTypeFdcEnum'
+          enum:
+            - region
+            - route
+            - actor
+          type: string
+          description: |-
+            * `region` - Região
+            * `route` - Rota
+            * `actor` - Ator
+          x-spec-enum-id: fdccaf6d28316674
           readOnly: true
         target_id:
           type: string
@@ -1651,8 +2053,18 @@ components:
           type: integer
           readOnly: true
         status:
-          allOf:
-          - $ref: '#/components/schemas/EditorialRevisionStatusEnum'
+          enum:
+            - draft
+            - review
+            - approved
+            - published
+          type: string
+          description: |-
+            * `draft` - Rascunho
+            * `review` - Em revisão
+            * `approved` - Aprovado
+            * `published` - Publicado
+          x-spec-enum-id: 30d36fdb27b8b8e7
           readOnly: true
         base_snapshot:
           readOnly: true
@@ -1699,37 +2111,25 @@ components:
           format: date-time
           readOnly: true
       required:
-      - base_snapshot
-      - created_at
-      - created_by_id
-      - diff
-      - id
-      - lock_version
-      - region_id
-      - return_reason
-      - reviewed_at
-      - reviewed_by_id
-      - sequence
-      - snapshot
-      - status
-      - submitted_at
-      - submitted_by_id
-      - target_id
-      - target_type
-      - updated_at
-      - updated_by_id
-    EditorialRevisionStatusEnum:
-      enum:
-      - draft
-      - review
-      - approved
-      - published
-      type: string
-      description: |-
-        * `draft` - Rascunho
-        * `review` - Em revisão
-        * `approved` - Aprovado
-        * `published` - Publicado
+        - base_snapshot
+        - created_at
+        - created_by_id
+        - diff
+        - id
+        - lock_version
+        - region_id
+        - return_reason
+        - reviewed_at
+        - reviewed_by_id
+        - sequence
+        - snapshot
+        - status
+        - submitted_at
+        - submitted_by_id
+        - target_id
+        - target_type
+        - updated_at
+        - updated_by_id
     EditorialWorkflowError:
       type: object
       properties:
@@ -1747,10 +2147,10 @@ components:
           type: string
           format: uuid
       required:
-      - code
-      - field_errors
-      - message
-      - request_id
+        - code
+        - field_errors
+        - message
+        - request_id
     ExternalDiscoveryError:
       type: object
       properties:
@@ -1768,10 +2168,10 @@ components:
           type: string
           format: uuid
       required:
-      - code
-      - field_errors
-      - message
-      - request_id
+        - code
+        - field_errors
+        - message
+        - request_id
     GooglePlacesCandidate:
       type: object
       properties:
@@ -1795,13 +2195,13 @@ components:
           type: string
           format: uri
       required:
-      - display_name
-      - formatted_address
-      - google_maps_uri
-      - latitude
-      - longitude
-      - place_id
-      - primary_type
+        - display_name
+        - formatted_address
+        - google_maps_uri
+        - latitude
+        - longitude
+        - place_id
+        - primary_type
     GooglePlacesPreviewRequest:
       type: object
       properties:
@@ -1840,13 +2240,13 @@ components:
           maximum: 20
           minimum: 1
       required:
-      - included_types
-      - latitude
-      - longitude
-      - max_results
-      - radius_meters
-      - region_slug
-      - route_slug
+        - included_types
+        - latitude
+        - longitude
+        - max_results
+        - radius_meters
+        - region_slug
+        - route_slug
     GooglePlacesPreviewResponse:
       type: object
       properties:
@@ -1864,11 +2264,28 @@ components:
           items:
             $ref: '#/components/schemas/GooglePlacesCandidate'
       required:
-      - attribution
-      - candidates
-      - provider
-      - result_count
-      - run_id
+        - attribution
+        - candidates
+        - provider
+        - result_count
+        - run_id
+    LoginError401:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        field_errors:
+          type: object
+          additionalProperties: {}
+        request_id:
+          type: string
+      required:
+        - code
+        - field_errors
+        - message
+        - request_id
     LoginRequest:
       type: object
       properties:
@@ -1880,8 +2297,8 @@ components:
           writeOnly: true
           maxLength: 128
       required:
-      - password
-      - username
+        - password
+        - username
     OperatingHours:
       type: object
       properties:
@@ -1907,26 +2324,38 @@ components:
         public_note:
           type: string
           maxLength: 240
-    OperationEnum:
-      enum:
-      - create
-      - update
-      - archive
-      type: string
-      description: |-
-        * `create` - create
-        * `update` - update
-        * `archive` - archive
-    PartnershipTypeEnum:
-      enum:
-      - editorial
-      - partner
-      - sponsored
-      type: string
-      description: |-
-        * `editorial` - Editorial
-        * `partner` - Parceiro
-        * `sponsored` - Patrocinado
+    OperationalAnalyticsResponse:
+      type: object
+      properties:
+        region_slug:
+          type: string
+        route_slug:
+          type: string
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        privacy_threshold:
+          type: integer
+          minimum: 10
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalyticsMetric'
+        ranking:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportPointRanking'
+      required:
+        - end
+        - metrics
+        - privacy_threshold
+        - ranking
+        - region_slug
+        - route_slug
+        - start
     PatchedAdminReport:
       type: object
       properties:
@@ -1935,12 +2364,32 @@ components:
           format: uuid
           readOnly: true
         report_type:
-          allOf:
-          - $ref: '#/components/schemas/ReportTypeEnum'
+          enum:
+            - incorrect_info
+            - closed_location
+            - wrong_contact
+            - safety_warning
+            - other
+          type: string
+          description: |-
+            * `incorrect_info` - Informação Incorreta
+            * `closed_location` - Local Fechado ou Inacessível
+            * `wrong_contact` - Contato Desatualizado
+            * `safety_warning` - Alerta de Segurança
+            * `other` - Outro Assunto
+          x-spec-enum-id: 7b3ed7b698175558
           readOnly: true
         target_type:
-          allOf:
-          - $ref: '#/components/schemas/TargetTypeEf3Enum'
+          enum:
+            - route
+            - actor
+            - general
+          type: string
+          description: |-
+            * `route` - Rota
+            * `actor` - Ator / Ponto Local
+            * `general` - Geral
+          x-spec-enum-id: ef3068de33b99aeb
           readOnly: true
         target_id:
           type: string
@@ -1960,7 +2409,18 @@ components:
           type: string
           readOnly: true
         status:
-          $ref: '#/components/schemas/AdminReportStatusEnum'
+          enum:
+            - pending
+            - reviewed
+            - rejected
+            - actioned
+          type: string
+          description: |-
+            * `pending` - Pendente
+            * `reviewed` - Revisado
+            * `rejected` - Rejeitado
+            * `actioned` - Ação Concluída
+          x-spec-enum-id: 245af38ac7ced752
         moderation_note:
           type: string
         created_at:
@@ -1993,7 +2453,20 @@ components:
           type: string
           maxLength: 160
         actor_kind:
-          $ref: '#/components/schemas/ActorKindEnum'
+          enum:
+            - business
+            - individual_provider
+            - community
+            - institution
+            - support
+          type: string
+          description: |-
+            * `business` - Empresa
+            * `individual_provider` - Prestador individual
+            * `community` - Comunidade
+            * `institution` - Instituição
+            * `support` - Ponto de apoio
+          x-spec-enum-id: 697952b537e1f241
         short_description:
           type: string
           maxLength: 180
@@ -2001,7 +2474,16 @@ components:
           type: string
         services: {}
         partnership_type:
-          $ref: '#/components/schemas/PartnershipTypeEnum'
+          enum:
+            - editorial
+            - partner
+            - sponsored
+          type: string
+          description: |-
+            * `editorial` - Editorial
+            * `partner` - Parceiro
+            * `sponsored` - Patrocinado
+          x-spec-enum-id: 38e3f2ee39ffa790
         category_slug:
           type: string
           readOnly: true
@@ -2024,16 +2506,16 @@ components:
           format: date-time
           readOnly: true
       required:
-      - actor_kind
-      - category_name
-      - category_slug
-      - contact_channels
-      - id
-      - locations
-      - public_name
-      - short_description
-      - slug
-      - updated_at
+        - actor_kind
+        - category_name
+        - category_slug
+        - contact_channels
+        - id
+        - locations
+        - public_name
+        - short_description
+        - slug
+        - updated_at
     PublicActorLocation:
       type: object
       properties:
@@ -2044,13 +2526,13 @@ components:
         point:
           type: object
           required:
-          - type
-          - coordinates
+            - type
+            - coordinates
           properties:
             type:
               type: string
               enum:
-              - Point
+                - Point
             coordinates:
               type: array
               items:
@@ -2071,15 +2553,28 @@ components:
           format: date-time
           readOnly: true
       required:
-      - label
-      - operating_hours
-      - point
-      - updated_at
+        - label
+        - operating_hours
+        - point
+        - updated_at
     PublicContactChannel:
       type: object
       properties:
         channel_type:
-          $ref: '#/components/schemas/ChannelTypeEnum'
+          enum:
+            - phone
+            - whatsapp
+            - email
+            - website
+            - instagram
+          type: string
+          description: |-
+            * `phone` - Telefone
+            * `whatsapp` - WhatsApp
+            * `email` - E-mail
+            * `website` - Site
+            * `instagram` - Instagram
+          x-spec-enum-id: f040ddfdb8eedb9d
         public_value:
           type: string
           maxLength: 500
@@ -2088,7 +2583,7 @@ components:
           format: date-time
           nullable: true
       required:
-      - channel_type
+        - channel_type
     PublicReportCreate:
       type: object
       properties:
@@ -2097,9 +2592,31 @@ components:
           format: uuid
           readOnly: true
         report_type:
-          $ref: '#/components/schemas/ReportTypeEnum'
+          enum:
+            - incorrect_info
+            - closed_location
+            - wrong_contact
+            - safety_warning
+            - other
+          type: string
+          description: |-
+            * `incorrect_info` - Informação Incorreta
+            * `closed_location` - Local Fechado ou Inacessível
+            * `wrong_contact` - Contato Desatualizado
+            * `safety_warning` - Alerta de Segurança
+            * `other` - Outro Assunto
+          x-spec-enum-id: 7b3ed7b698175558
         target_type:
-          $ref: '#/components/schemas/TargetTypeEf3Enum'
+          enum:
+            - route
+            - actor
+            - general
+          type: string
+          description: |-
+            * `route` - Rota
+            * `actor` - Ator / Ponto Local
+            * `general` - Geral
+          x-spec-enum-id: ef3068de33b99aeb
         target_id:
           type: string
           format: uuid
@@ -2121,9 +2638,9 @@ components:
           format: date-time
           readOnly: true
       required:
-      - created_at
-      - description
-      - id
+        - created_at
+        - description
+        - id
     PublicReportCreatedResponse:
       type: object
       properties:
@@ -2135,9 +2652,9 @@ components:
         status:
           type: string
       required:
-      - id
-      - message
-      - status
+        - id
+        - message
+        - status
     PublicationVersion:
       type: object
       properties:
@@ -2160,8 +2677,16 @@ components:
           format: uuid
           readOnly: true
         target_type:
-          allOf:
-          - $ref: '#/components/schemas/TargetTypeFdcEnum'
+          enum:
+            - region
+            - route
+            - actor
+          type: string
+          description: |-
+            * `region` - Região
+            * `route` - Rota
+            * `actor` - Ator
+          x-spec-enum-id: fdccaf6d28316674
           readOnly: true
         target_id:
           type: string
@@ -2201,23 +2726,23 @@ components:
           format: date-time
           readOnly: true
       required:
-      - approved_by_id
-      - checksum
-      - critical_information_current
-      - critical_override_reason
-      - human_confirmed
-      - id
-      - published_at
-      - published_by_id
-      - reason
-      - region_id
-      - restored_from_id
-      - revision_id
-      - snapshot
-      - source_confirmed
-      - target_id
-      - target_type
-      - version
+        - approved_by_id
+        - checksum
+        - critical_information_current
+        - critical_override_reason
+        - human_confirmed
+        - id
+        - published_at
+        - published_by_id
+        - reason
+        - region_id
+        - restored_from_id
+        - revision_id
+        - snapshot
+        - source_confirmed
+        - target_id
+        - target_type
+        - version
     PublishEditorialRevision:
       type: object
       properties:
@@ -2237,10 +2762,51 @@ components:
           type: string
           maxLength: 2000
       required:
-      - critical_information_current
-      - human_confirmed
-      - lock_version
-      - source_confirmed
+        - critical_information_current
+        - human_confirmed
+        - lock_version
+        - source_confirmed
+    ReadinessDimensions:
+      type: object
+      properties:
+        content:
+          type: integer
+          maximum: 100
+          minimum: 0
+        trace:
+          type: integer
+          maximum: 100
+          minimum: 0
+        catalog:
+          type: integer
+          maximum: 100
+          minimum: 0
+        alerts:
+          type: integer
+          maximum: 100
+          minimum: 0
+        offline:
+          type: integer
+          maximum: 100
+          minimum: 0
+      required:
+        - alerts
+        - catalog
+        - content
+        - offline
+        - trace
+    RegionRouteReadinessResponse:
+      type: object
+      properties:
+        region_slug:
+          type: string
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/RouteReadiness'
+      required:
+        - region_slug
+        - routes
     RegionSummary:
       type: object
       properties:
@@ -2261,13 +2827,13 @@ components:
         center_point:
           type: object
           required:
-          - type
-          - coordinates
+            - type
+            - coordinates
           properties:
             type:
               type: string
               enum:
-              - Point
+                - Point
             coordinates:
               type: array
               items:
@@ -2288,25 +2854,11 @@ components:
           format: date-time
           readOnly: true
       required:
-      - center_point
-      - id
-      - public_name
-      - slug
-      - updated_at
-    ReportTypeEnum:
-      enum:
-      - incorrect_info
-      - closed_location
-      - wrong_contact
-      - safety_warning
-      - other
-      type: string
-      description: |-
-        * `incorrect_info` - Informação Incorreta
-        * `closed_location` - Local Fechado ou Inacessível
-        * `wrong_contact` - Contato Desatualizado
-        * `safety_warning` - Alerta de Segurança
-        * `other` - Outro Assunto
+        - center_point
+        - id
+        - public_name
+        - slug
+        - updated_at
     RestorePublicationVersion:
       type: object
       properties:
@@ -2327,16 +2879,11 @@ components:
           type: string
           maxLength: 2000
       required:
-      - critical_information_current
-      - expected_current_version
-      - human_confirmed
-      - reason
-      - source_confirmed
-    ResultEnum:
-      enum:
-      - success
-      type: string
-      description: '* `success` - Sucesso'
+        - critical_information_current
+        - expected_current_version
+        - human_confirmed
+        - reason
+        - source_confirmed
     ReturnEditorialRevision:
       type: object
       properties:
@@ -2347,8 +2894,8 @@ components:
           type: string
           maxLength: 2000
       required:
-      - lock_version
-      - reason
+        - lock_version
+        - reason
     RevisionTransition:
       type: object
       properties:
@@ -2356,12 +2903,27 @@ components:
           type: integer
           minimum: 1
       required:
-      - lock_version
+        - lock_version
     RouteCatalogItem:
       type: object
       properties:
         route_role:
-          $ref: '#/components/schemas/RouteRoleEnum'
+          enum:
+            - experience
+            - support
+            - start
+            - stop
+            - emergency
+            - service
+          type: string
+          description: |-
+            * `experience` - Experiência
+            * `support` - Apoio
+            * `start` - Início
+            * `stop` - Parada
+            * `emergency` - Emergência
+            * `service` - Serviço
+          x-spec-enum-id: 26029888495bbdd4
         editorial_position:
           type: integer
           maximum: 32767
@@ -2378,12 +2940,12 @@ components:
           nullable: true
         actor:
           allOf:
-          - $ref: '#/components/schemas/PublicActor'
+            - $ref: '#/components/schemas/PublicActor'
           readOnly: true
       required:
-      - actor
-      - route_role
-      - stage_id
+        - actor
+        - route_role
+        - stage_id
     RouteDetail:
       type: object
       properties:
@@ -2406,7 +2968,16 @@ components:
           maximum: 2147483647
           minimum: 0
         difficulty:
-          $ref: '#/components/schemas/DifficultyEnum'
+          enum:
+            - easy
+            - moderate
+            - hard
+          type: string
+          description: |-
+            * `easy` - Fácil
+            * `moderate` - Moderada
+            * `hard` - Difícil
+          x-spec-enum-id: d835a0185ead1283
         estimated_cost_min:
           type: string
           format: decimal
@@ -2453,34 +3024,116 @@ components:
             $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
-      - alerts
-      - difficulty
-      - duration_minutes
-      - id
-      - public_name
-      - region_name
-      - region_slug
-      - segments
-      - short_promise
-      - slug
-      - stages
-      - updated_at
-    RouteRoleEnum:
-      enum:
-      - experience
-      - support
-      - start
-      - stop
-      - emergency
-      - service
-      type: string
-      description: |-
-        * `experience` - Experiência
-        * `support` - Apoio
-        * `start` - Início
-        * `stop` - Parada
-        * `emergency` - Emergência
-        * `service` - Serviço
+        - alerts
+        - difficulty
+        - duration_minutes
+        - id
+        - public_name
+        - region_name
+        - region_slug
+        - segments
+        - short_promise
+        - slug
+        - stages
+        - updated_at
+    RouteReadiness:
+      type: object
+      properties:
+        route_id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        title:
+          type: string
+        editorial_status:
+          enum:
+            - draft
+            - review
+            - approved
+            - published
+            - suspended
+            - archived
+          type: string
+          description: |-
+            * `draft` - Rascunho
+            * `review` - Em revisão
+            * `approved` - Aprovado
+            * `published` - Publicado
+            * `suspended` - Suspenso
+            * `archived` - Arquivado
+          x-spec-enum-id: b8cd74618bec600b
+        formula_version:
+          type: string
+        weights:
+          $ref: '#/components/schemas/ReadinessDimensions'
+        dimensions:
+          $ref: '#/components/schemas/ReadinessDimensions'
+        score:
+          type: integer
+          maximum: 100
+          minimum: 0
+          nullable: true
+        is_ready:
+          type: boolean
+        blocking_reasons:
+          type: array
+          items:
+            type: string
+        missing_required_fields:
+          type: array
+          items:
+            type: string
+        stages_count:
+          type: integer
+          minimum: 0
+        segments_count:
+          type: integer
+          minimum: 0
+        published_points_count:
+          type: integer
+          minimum: 0
+        points_in_review_count:
+          type: integer
+          minimum: 0
+        verified_contacts_count:
+          type: integer
+          minimum: 0
+        unverified_public_contacts_count:
+          type: integer
+          minimum: 0
+        blocking_alerts_count:
+          type: integer
+          minimum: 0
+        last_revision_at:
+          type: string
+          format: date-time
+          nullable: true
+        published_version:
+          type: integer
+          minimum: 1
+          nullable: true
+      required:
+        - blocking_alerts_count
+        - blocking_reasons
+        - dimensions
+        - editorial_status
+        - formula_version
+        - is_ready
+        - last_revision_at
+        - missing_required_fields
+        - points_in_review_count
+        - published_points_count
+        - published_version
+        - route_id
+        - score
+        - segments_count
+        - slug
+        - stages_count
+        - title
+        - unverified_public_contacts_count
+        - verified_contacts_count
+        - weights
     RouteSegment:
       type: object
       properties:
@@ -2499,13 +3152,13 @@ components:
         geometry:
           type: object
           required:
-          - type
-          - coordinates
+            - type
+            - coordinates
           properties:
             type:
               type: string
               enum:
-              - LineString
+                - LineString
             coordinates:
               type: array
               items:
@@ -2534,14 +3187,14 @@ components:
           format: date-time
           readOnly: true
       required:
-      - distance_meters
-      - duration_minutes
-      - from_stage_id
-      - geometry
-      - id
-      - to_stage_id
-      - transport_mode
-      - updated_at
+        - distance_meters
+        - duration_minutes
+        - from_stage_id
+        - geometry
+        - id
+        - to_stage_id
+        - transport_mode
+        - updated_at
     RouteStage:
       type: object
       properties:
@@ -2561,13 +3214,13 @@ components:
         point:
           type: object
           required:
-          - type
-          - coordinates
+            - type
+            - coordinates
           properties:
             type:
               type: string
               enum:
-              - Point
+                - Point
             coordinates:
               type: array
               items:
@@ -2583,7 +3236,20 @@ components:
           minimum: 0
           nullable: true
         stage_type:
-          $ref: '#/components/schemas/StageTypeEnum'
+          enum:
+            - start
+            - stop
+            - experience
+            - support
+            - end
+          type: string
+          description: |-
+            * `start` - Início
+            * `stop` - Parada
+            * `experience` - Experiência
+            * `support` - Apoio
+            * `end` - Fim
+          x-spec-enum-id: 01800cd6cab71c47
         is_optional:
           type: boolean
         updated_at:
@@ -2591,12 +3257,12 @@ components:
           format: date-time
           readOnly: true
       required:
-      - id
-      - point
-      - position
-      - public_name
-      - stage_type
-      - updated_at
+        - id
+        - point
+        - position
+        - public_name
+        - stage_type
+        - updated_at
     RouteSummary:
       type: object
       properties:
@@ -2619,7 +3285,16 @@ components:
           maximum: 2147483647
           minimum: 0
         difficulty:
-          $ref: '#/components/schemas/DifficultyEnum'
+          enum:
+            - easy
+            - moderate
+            - hard
+          type: string
+          description: |-
+            * `easy` - Fácil
+            * `moderate` - Moderada
+            * `hard` - Difícil
+          x-spec-enum-id: d835a0185ead1283
         estimated_cost_min:
           type: string
           format: decimal
@@ -2640,13 +3315,13 @@ components:
           format: date-time
           readOnly: true
       required:
-      - difficulty
-      - duration_minutes
-      - id
-      - public_name
-      - short_promise
-      - slug
-      - updated_at
+        - difficulty
+        - duration_minutes
+        - id
+        - public_name
+        - short_promise
+        - slug
+        - updated_at
     SessionResponse:
       type: object
       properties:
@@ -2654,45 +3329,412 @@ components:
           type: boolean
         user:
           allOf:
-          - $ref: '#/components/schemas/AdminIdentity'
+            - $ref: '#/components/schemas/AdminIdentity'
           nullable: true
       required:
-      - authenticated
-      - user
-    StageTypeEnum:
-      enum:
-      - start
-      - stop
-      - experience
-      - support
-      - end
-      type: string
-      description: |-
-        * `start` - Início
-        * `stop` - Parada
-        * `experience` - Experiência
-        * `support` - Apoio
-        * `end` - Fim
-    TargetTypeEf3Enum:
-      enum:
-      - route
-      - actor
-      - general
-      type: string
-      description: |-
-        * `route` - Rota
-        * `actor` - Ator / Ponto Local
-        * `general` - Geral
-    TargetTypeFdcEnum:
-      enum:
-      - region
-      - route
-      - actor
-      type: string
-      description: |-
-        * `region` - Região
-        * `route` - Rota
-        * `actor` - Ator
+        - authenticated
+        - user
+    SupportPointRanking:
+      type: object
+      properties:
+        support_point_id:
+          type: string
+          format: uuid
+        support_point_name:
+          type: string
+        contacts:
+          type: integer
+          minimum: 10
+      required:
+        - contacts
+        - support_point_id
+        - support_point_name
+    SupportPointActorInput:
+      type: object
+      additionalProperties: false
+      properties:
+        category_id:
+          type: string
+          format: uuid
+        public_name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        legal_name:
+          type: string
+          maxLength: 200
+          default: ''
+        short_description:
+          type: string
+          minLength: 1
+          maxLength: 180
+        full_description:
+          type: string
+          maxLength: 10000
+          default: ''
+        services:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 120
+          default: []
+      required:
+        - category_id
+        - public_name
+        - short_description
+    SupportPointAddressInput:
+      type: object
+      additionalProperties: false
+      properties:
+        street:
+          type: string
+          maxLength: 160
+        number:
+          type: string
+          maxLength: 40
+        complement:
+          type: string
+          maxLength: 120
+        neighborhood:
+          type: string
+          maxLength: 120
+        locality:
+          type: string
+          minLength: 1
+          maxLength: 120
+        administrative_area:
+          type: string
+          maxLength: 120
+        postal_code:
+          type: string
+          maxLength: 20
+        country_code:
+          type: string
+          pattern: ^[A-Z]{2}$
+      required:
+        - country_code
+        - locality
+    SupportPointLocationInput:
+      type: object
+      additionalProperties: false
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 120
+        address_fields:
+          $ref: '#/components/schemas/SupportPointAddressInput'
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+        public_visibility:
+          type: boolean
+      required:
+        - address_fields
+        - label
+        - latitude
+        - longitude
+        - public_visibility
+    SupportPointPhoneContactInput:
+      type: object
+      additionalProperties: false
+      properties:
+        channel_type:
+          type: string
+          enum:
+            - phone
+            - whatsapp
+        value:
+          type: string
+          pattern: ^\+[1-9][0-9]{7,14}$
+        is_public:
+          type: boolean
+          enum:
+            - true
+        source_type:
+          type: string
+          enum:
+            - consolidated_sheet
+            - tourism_inventory
+            - other_public
+        source_reference:
+          type: string
+          minLength: 1
+          maxLength: 200
+        verified_at:
+          type: string
+          format: date-time
+      required:
+        - channel_type
+        - is_public
+        - source_reference
+        - source_type
+        - value
+        - verified_at
+    SupportPointEmailContactInput:
+      type: object
+      additionalProperties: false
+      properties:
+        channel_type:
+          type: string
+          enum:
+            - email
+        value:
+          type: string
+          format: email
+          maxLength: 254
+        is_public:
+          type: boolean
+          enum:
+            - true
+        source_type:
+          type: string
+          enum:
+            - consolidated_sheet
+            - tourism_inventory
+            - other_public
+        source_reference:
+          type: string
+          minLength: 1
+          maxLength: 200
+        verified_at:
+          type: string
+          format: date-time
+      required:
+        - channel_type
+        - is_public
+        - source_reference
+        - source_type
+        - value
+        - verified_at
+    SupportPointUrlContactInput:
+      type: object
+      additionalProperties: false
+      properties:
+        channel_type:
+          type: string
+          enum:
+            - website
+            - instagram
+        value:
+          type: string
+          format: uri
+          pattern: ^https://
+          maxLength: 500
+        is_public:
+          type: boolean
+          enum:
+            - true
+        source_type:
+          type: string
+          enum:
+            - consolidated_sheet
+            - tourism_inventory
+            - other_public
+        source_reference:
+          type: string
+          minLength: 1
+          maxLength: 200
+        verified_at:
+          type: string
+          format: date-time
+      required:
+        - channel_type
+        - is_public
+        - source_reference
+        - source_type
+        - value
+        - verified_at
+    SupportPointContactInput:
+      oneOf:
+        - $ref: '#/components/schemas/SupportPointPhoneContactInput'
+        - $ref: '#/components/schemas/SupportPointEmailContactInput'
+        - $ref: '#/components/schemas/SupportPointUrlContactInput'
+    SupportPointRouteLinkInput:
+      type: object
+      additionalProperties: false
+      properties:
+        route_id:
+          type: string
+          format: uuid
+        stage_id:
+          type: string
+          format: uuid
+          nullable: true
+        route_role:
+          type: string
+          enum:
+            - experience
+            - support
+            - start
+            - stop
+            - emergency
+            - service
+        editorial_position:
+          type: integer
+          minimum: 1
+          maximum: 32767
+        is_featured:
+          type: boolean
+        sponsorship_label:
+          type: string
+          maxLength: 160
+      required:
+        - editorial_position
+        - is_featured
+        - route_id
+        - route_role
+        - sponsorship_label
+    SupportPointCreateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        actor:
+          $ref: '#/components/schemas/SupportPointActorInput'
+        location:
+          $ref: '#/components/schemas/SupportPointLocationInput'
+        contacts:
+          type: array
+          maxItems: 10
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/SupportPointContactInput'
+        route_links:
+          type: array
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/SupportPointRouteLinkInput'
+      required:
+        - actor
+        - contacts
+        - location
+        - route_links
+    SupportPointRouteLinkResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        route_id:
+          type: string
+          format: uuid
+        stage_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+        - id
+        - route_id
+        - stage_id
+    SupportPointCreateResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        actor_kind:
+          type: string
+          enum:
+            - support
+        editorial_status:
+          type: string
+          enum:
+            - draft
+        partnership_type:
+          type: string
+          enum:
+            - editorial
+        region_id:
+          type: string
+          format: uuid
+        location_id:
+          type: string
+          format: uuid
+        contact_ids:
+          type: array
+          maxItems: 10
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        route_links:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/SupportPointRouteLinkResponse'
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - actor_kind
+        - contact_ids
+        - created_at
+        - editorial_status
+        - id
+        - location_id
+        - partnership_type
+        - region_id
+        - route_links
+    SupportPointCreateError:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          enum:
+            - validation_error
+            - invalid_relation
+            - invalid_csrf
+            - authentication_required
+            - permission_denied
+            - duplicate_support_point
+            - idempotency_conflict
+            - concurrent_conflict
+            - rate_limited
+            - internal_error
+            - region_boundary_unavailable
+            - request_failed
+        message:
+          type: string
+          minLength: 1
+          maxLength: 240
+        field_errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+              maxLength: 240
+        request_id:
+          type: string
+          format: uuid
+        duplicate_candidate_ids:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+      required:
+        - code
+        - field_errors
+        - message
+        - request_id
   securitySchemes:
     cookieAuth:
       type: apiKey

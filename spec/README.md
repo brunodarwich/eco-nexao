@@ -35,6 +35,10 @@ O nome mais usado para o documento de requisitos do produto é **PRD — Product
 | Monorepo | `pnpm` para TypeScript e `uv` para Python |
 | Mapa | MapLibre GL JS com provedor de tiles configurável |
 | Banco do piloto | Supabase/PostGIS em `sa-east-1`, acessado somente pela API |
+
+A mesma decisão se aplica ao desenvolvimento e aos testes integrados: não há banco PostGIS local
+em Docker. Fixtures automatizadas só podem ser gravadas em projeto Supabase explicitamente
+autorizado, com dados fictícios e limpeza garantida.
 | Administração | Dashboard e painel protegido |
 | Carga inicial | Importação de catálogo por CSV com pré-validação e revisão |
 | Analytics | Coleta própria, pseudonimizada e separada por finalidade |

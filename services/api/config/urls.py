@@ -8,6 +8,7 @@ urlpatterns = [
     path("api/v1/admin/auth/", include("modules.accounts.urls")),
     path("api/v1/admin/", include("modules.audit.urls")),
     path("api/v1/admin/discovery/", include("modules.catalog.admin_urls")),
+    path("api/v1/admin/catalog/", include("modules.catalog.support_point_urls")),
     path("api/v1/admin/imports/", include("modules.imports.urls")),
     path("api/v1/admin/editorial/", include("modules.publishing.urls")),
     path("api/v1/", include("modules.reports.urls")),

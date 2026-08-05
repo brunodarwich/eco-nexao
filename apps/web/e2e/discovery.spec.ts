@@ -193,6 +193,7 @@ test('seleciona região, filtra rotas e abre uma URL compartilhável', async ({
 
   await page.emulateMedia({ colorScheme: 'light' })
   await page.goto('/')
+  await page.getByRole('button', { name: 'Usar apenas necessários' }).click()
   await page
     .getByRole('button', {
       name: 'Tema atual: claro. Ativar tema escuro.',

@@ -1,0 +1,307 @@
+# Operações aprovadas que precedem deliberadamente suas rotas Django.
+# Remova cada entrada quando o endpoint real passar a gerar o mesmo contrato.
+paths:
+  /api/v1/admin/catalog/support-points/:
+    post:
+      operationId: createAdminSupportPoint
+      description: |-
+        Cria transacionalmente um ponto de apoio administrativo como rascunho.
+        A operação nunca publica, envia para revisão ou mescla duplicatas automaticamente.
+        Este contrato antecede a implementação do endpoint e deve ser refletido nas anotações
+        Django antes da ativação da rota.
+      tags:
+        - Admin catalog
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          description: UUID v4 reutilizado somente pelo mesmo usuário, região e payload por 24 horas.
+          schema:
+            type: string
+            format: uuid
+        - in: header
+          name: X-CSRFToken
+          required: true
+          description: Token CSRF correspondente à sessão administrativa.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportPointCreateRequest'
+      security:
+        - cookieAuth: []
+      responses:
+        '201':
+          description: Ponto de apoio criado exclusivamente como rascunho.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: [no-store] }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateResponse'
+        '400':
+          description: Corpo, CSRF, coordenadas, contatos, identificadores ou relações inválidos.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: [no-store] }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '401':
+          description: Sessão administrativa ausente ou expirada.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: [no-store] }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '403':
+          description: Papel, ação, escopo regional ou proteção CSRF insuficiente.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: [no-store] }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '409':
+          description: Duplicidade, conflito idempotente ou concorrência detectada.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: [no-store] }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '429':
+          description: Limite configurado para criação manual excedido.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: [no-store] }
+            Retry-After:
+              required: true
+              schema: { type: integer, minimum: 1 }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+        '500':
+          description: Falha interna segura; nenhuma parte do agregado permanece gravada.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: [no-store] }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPointCreateError'
+components:
+  schemas:
+    SupportPointActorInput:
+      type: object
+      additionalProperties: false
+      properties:
+        category_id: { type: string, format: uuid }
+        public_name: { type: string, minLength: 1, maxLength: 160 }
+        legal_name: { type: string, maxLength: 200, default: '' }
+        short_description: { type: string, minLength: 1, maxLength: 180 }
+        full_description: { type: string, maxLength: 10000, default: '' }
+        services:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items: { type: string, minLength: 1, maxLength: 120 }
+          default: []
+      required: [category_id, public_name, short_description]
+    SupportPointAddressInput:
+      type: object
+      additionalProperties: false
+      properties:
+        street: { type: string, maxLength: 160 }
+        number: { type: string, maxLength: 40 }
+        complement: { type: string, maxLength: 120 }
+        neighborhood: { type: string, maxLength: 120 }
+        locality: { type: string, minLength: 1, maxLength: 120 }
+        administrative_area: { type: string, maxLength: 120 }
+        postal_code: { type: string, maxLength: 20 }
+        country_code: { type: string, pattern: '^[A-Z]{2}$' }
+      required: [country_code, locality]
+    SupportPointLocationInput:
+      type: object
+      additionalProperties: false
+      properties:
+        label: { type: string, minLength: 1, maxLength: 120 }
+        address_fields:
+          $ref: '#/components/schemas/SupportPointAddressInput'
+        latitude: { type: number, format: double, minimum: -90, maximum: 90 }
+        longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+        public_visibility: { type: boolean }
+      required: [address_fields, label, latitude, longitude, public_visibility]
+    SupportPointPhoneContactInput:
+      type: object
+      additionalProperties: false
+      properties:
+        channel_type: { type: string, enum: [phone, whatsapp] }
+        value: { type: string, pattern: '^\+[1-9][0-9]{7,14}$' }
+        is_public: { type: boolean, enum: [true] }
+        source_type:
+          type: string
+          enum: [consolidated_sheet, tourism_inventory, other_public]
+        source_reference: { type: string, minLength: 1, maxLength: 200 }
+        verified_at: { type: string, format: date-time }
+      required:
+        [channel_type, is_public, source_reference, source_type, value, verified_at]
+    SupportPointEmailContactInput:
+      type: object
+      additionalProperties: false
+      properties:
+        channel_type: { type: string, enum: [email] }
+        value: { type: string, format: email, maxLength: 254 }
+        is_public: { type: boolean, enum: [true] }
+        source_type:
+          type: string
+          enum: [consolidated_sheet, tourism_inventory, other_public]
+        source_reference: { type: string, minLength: 1, maxLength: 200 }
+        verified_at: { type: string, format: date-time }
+      required:
+        [channel_type, is_public, source_reference, source_type, value, verified_at]
+    SupportPointUrlContactInput:
+      type: object
+      additionalProperties: false
+      properties:
+        channel_type: { type: string, enum: [website, instagram] }
+        value: { type: string, format: uri, pattern: ^https://, maxLength: 500 }
+        is_public: { type: boolean, enum: [true] }
+        source_type:
+          type: string
+          enum: [consolidated_sheet, tourism_inventory, other_public]
+        source_reference: { type: string, minLength: 1, maxLength: 200 }
+        verified_at: { type: string, format: date-time }
+      required:
+        [channel_type, is_public, source_reference, source_type, value, verified_at]
+    SupportPointContactInput:
+      oneOf:
+        - $ref: '#/components/schemas/SupportPointPhoneContactInput'
+        - $ref: '#/components/schemas/SupportPointEmailContactInput'
+        - $ref: '#/components/schemas/SupportPointUrlContactInput'
+    SupportPointRouteLinkInput:
+      type: object
+      additionalProperties: false
+      properties:
+        route_id: { type: string, format: uuid }
+        stage_id: { type: string, format: uuid, nullable: true }
+        route_role:
+          type: string
+          enum: [experience, support, start, stop, emergency, service]
+        editorial_position: { type: integer, minimum: 1, maximum: 32767 }
+        is_featured: { type: boolean }
+        sponsorship_label: { type: string, maxLength: 160 }
+      required:
+        [
+          editorial_position,
+          is_featured,
+          route_id,
+          route_role,
+          sponsorship_label,
+        ]
+    SupportPointCreateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        actor:
+          $ref: '#/components/schemas/SupportPointActorInput'
+        location:
+          $ref: '#/components/schemas/SupportPointLocationInput'
+        contacts:
+          type: array
+          maxItems: 10
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/SupportPointContactInput'
+        route_links:
+          type: array
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/SupportPointRouteLinkInput'
+      required: [actor, contacts, location, route_links]
+    SupportPointRouteLinkResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        route_id: { type: string, format: uuid }
+        stage_id: { type: string, format: uuid, nullable: true }
+      required: [id, route_id, stage_id]
+    SupportPointCreateResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        actor_kind: { type: string, enum: [support] }
+        editorial_status: { type: string, enum: [draft] }
+        partnership_type: { type: string, enum: [editorial] }
+        region_id: { type: string, format: uuid }
+        location_id: { type: string, format: uuid }
+        contact_ids:
+          type: array
+          maxItems: 10
+          uniqueItems: true
+          items: { type: string, format: uuid }
+        route_links:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/SupportPointRouteLinkResponse'
+        created_at: { type: string, format: date-time }
+      required:
+        - actor_kind
+        - contact_ids
+        - created_at
+        - editorial_status
+        - id
+        - location_id
+        - partnership_type
+        - region_id
+        - route_links
+    SupportPointCreateError:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          enum:
+            - validation_error
+            - invalid_relation
+            - invalid_csrf
+            - authentication_required
+            - permission_denied
+            - duplicate_support_point
+            - idempotency_conflict
+            - concurrent_conflict
+            - rate_limited
+            - internal_error
+            - region_boundary_unavailable
+            - request_failed
+        message: { type: string, minLength: 1, maxLength: 240 }
+        field_errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string, maxLength: 240 }
+        request_id: { type: string, format: uuid }
+        duplicate_candidate_ids:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items: { type: string, format: uuid }
+      required: [code, field_errors, message, request_id]

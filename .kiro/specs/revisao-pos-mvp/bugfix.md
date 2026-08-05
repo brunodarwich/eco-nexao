@@ -1,8 +1,8 @@
 # Bugfix — revisão pós-implementação da Plataforma MVP
 
-> Status: rascunho para aprovação  
-> Responsável: Bruno  
-> Atualizado em: 2026-07-31  
+> Status: aprovado e em execução
+> Responsável: Bruno
+> Atualizado em: 2026-08-05
 > Origem: revisão independente pós-implementação da spec `plataforma-mvp`
 
 ## Problema
@@ -26,11 +26,16 @@ homologação `0H` permanecerem abertos.
 - Aplicar allowlist estrita aos eventos de analytics e rejeitar PII, coordenadas e texto livre.
 - Adicionar throttling, RLS e retenção verificável aos módulos de analytics e relatos.
 - Encaminhar corretamente todas as chamadas entre web, admin e API, com CSRF nas mutações.
+- Centralizar o cliente administrativo para que credenciais, CSRF e tradução de erros não sejam
+  reimplementados de forma divergente em cada componente.
 - Vincular relatos a registros reais e preservar imutável o conteúdo originalmente enviado.
 - Conectar operações editoriais ao workflow persistente, versionado e auditado.
+- Manter o formulário aberto e informar a falha quando a API rejeitar ou não concluir uma mutação;
+  o painel nunca deve simular um rascunho salvo localmente.
 - Permitir revogação imediata do consentimento opcional.
 - Corrigir foco, teclado, semântica de diálogos e abas conforme WCAG 2.2 AA.
-- Respeitar `prefers-color-scheme` quando não houver escolha persistida.
+- Manter o tema claro como padrão quando não houver escolha persistida; a escolha explícita do
+  usuário por claro ou escuro continua prevalecendo.
 - Tornar falhas de autenticação e infraestrutura visíveis, sem convertê-las em estados vazios.
 - Impedir que comandos de seed publiquem ou rebaixem conteúdo fora do workflow aprovado.
 - Alinhar contratos OpenAPI às respostas reais e adicionar testes de integração negativos.
@@ -54,7 +59,8 @@ homologação `0H` permanecerem abertos.
    contato ou identidade do alvo.
 10. QUANDO um diálogo abrir O SISTEMA DEVE mover e conter o foco, fechar por `Escape` quando
     aplicável e restaurar o foco ao acionador.
-11. QUANDO não houver tema salvo O SISTEMA DEVE respeitar `prefers-color-scheme`.
+11. QUANDO não houver tema salvo O SISTEMA DEVE iniciar no tema claro conforme a direção do
+    produto.
 12. QUANDO ocorrer `401`, `403` ou erro de infraestrutura O PAINEL DEVE apresentar estado de erro
     correspondente, sem afirmar que não existem registros.
 13. QUANDO o seed for executado O SISTEMA NÃO DEVE publicar, despublicar ou zerar versões fora do
@@ -63,6 +69,13 @@ homologação `0H` permanecerem abertos.
     incluindo testes novos que falhavam antes das correções.
 15. ENQUANTO qualquer bloqueador desta spec ou portão `0H` estiver aberto A DECISÃO DEVE permanecer
     `NO-GO` para homologação pública.
+16. QUANDO uma mutação administrativa falhar O PAINEL NÃO DEVE atualizar a interface como se a API
+    tivesse persistido o resultado e DEVE preservar os dados digitados para nova tentativa.
+17. QUANDO componentes administrativos fizerem mutações O SISTEMA DEVE usar um único cliente para
+   obter CSRF, preservar cookies e traduzir respostas `401`, `403`, `429` e `5xx`.
+18. QUANDO a integração entre serviços usar PostgreSQL/PostGIS O SISTEMA DEVE usar o projeto
+   Supabase explicitamente autorizado via `DATABASE_URL`, sem Docker local, sem expor a conexão aos
+   frontends e com limpeza garantida das fixtures fictícias.
 
 ## Casos de borda e falhas obrigatórios
 
@@ -75,7 +88,8 @@ homologação `0H` permanecerem abertos.
 - Revogação com eventos ainda na fila local e requisição em andamento.
 - API separada, indisponível, sessão expirada ou CSRF inválido.
 - Navegação por teclado com `Tab`, `Shift+Tab`, `Escape`, setas, `Home` e `End`.
-- Sistema em tema escuro sem preferência local e preferência salva divergente do sistema.
+- Sistema operacional em tema escuro sem preferência local e preferência explícita salva para
+  qualquer um dos temas.
 - Seed repetido sobre conteúdo já publicado e versionado.
 
 ## Fora do escopo

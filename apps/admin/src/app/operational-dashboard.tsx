@@ -5,11 +5,11 @@ import { FeedbackState } from '@econexao/ui/feedback-state'
 import {
   AppAnalyticsView,
   CatalogItemApi,
-  RouteApiSummary,
 } from './components/app-analytics-view'
 import { CsvImportView } from './components/csv-import-view'
 import { HeroFocus } from './components/hero-focus'
 import { PoiEditorModal } from './components/poi-editor-modal'
+import { SupportPointCreateModal } from './components/support-point-create-modal'
 import { ReportsAlertsView } from './components/reports-alerts-view'
 import { RouteReadinessView } from './components/route-readiness-view'
 import {
@@ -18,11 +18,21 @@ import {
   classifyAdminResponse,
 } from './components/admin-data-state'
 import { DiscoveryWorkspace } from './discovery-workspace'
+import {
+  type PublishedRouteApiSummary,
+  type RouteApiSummary,
+  toDashboardRoute,
+} from '../lib/dashboard-routes'
+import {
+  type DashboardSummaryApi,
+  fetchDashboardSummary,
+  getAdminRequestError,
+} from '../lib/admin-api'
 
 export interface RegionApiSummary {
-  id?: string
+  id: string
   slug: string
-  name: string
+  public_name: string
 }
 
 export function getDashboardTabIndex(
@@ -73,10 +83,23 @@ export function OperationalDashboard() {
   const [catalogItems, setCatalogItems] = useState<CatalogItemApi[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [routesError, setRoutesError] = useState<AdminRequestError | null>(null)
+  const [catalogError, setCatalogError] = useState<AdminRequestError | null>(
+    null,
+  )
+
+  const [dashboardSummary, setDashboardSummary] =
+    useState<DashboardSummaryApi | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(true)
+  const [summaryError, setSummaryError] = useState<AdminRequestError | null>(
+    null,
+  )
 
   // Estado do Modal de Edição Manual
   const [isEditorModalOpen, setIsEditorModalOpen] = useState(false)
   const [poiToEdit, setPoiToEdit] = useState<CatalogItemApi | null>(null)
+
+  // Estado do Modal de Cadastro Manual de Ponto de Apoio
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   // Busca lista de regiões publicadas
   useEffect(() => {
@@ -130,7 +153,9 @@ export function OperationalDashboard() {
       .then((data) => {
         if (active) {
           setRoutesError(null)
-          const list = Array.isArray(data) ? data : []
+          const list = Array.isArray(data)
+            ? (data as PublishedRouteApiSummary[]).map(toDashboardRoute)
+            : []
           setRoutes(list)
           if (list.length > 0) {
             setSelectedRouteSlug(list[0].slug)
@@ -172,14 +197,25 @@ export function OperationalDashboard() {
       `/api/public/regions/${selectedRegionSlug}/routes/${selectedRouteSlug}/catalog`,
       { cache: 'no-store' },
     )
-      .then((res) => (res.ok ? res.json() : []))
+      .then((res) => {
+        if (!res.ok) throw classifyAdminResponse(res.status)
+        return res.json()
+      })
       .then((data) => {
         if (active) {
+          setCatalogError(null)
           setCatalogItems(Array.isArray(data) ? data : [])
         }
       })
-      .catch(() => {
-        if (active) setCatalogItems([])
+      .catch((error: unknown) => {
+        if (active) {
+          setCatalogItems([])
+          setCatalogError(
+            typeof error === 'string'
+              ? (error as AdminRequestError)
+              : 'unavailable',
+          )
+        }
       })
 
     return () => {
@@ -187,32 +223,54 @@ export function OperationalDashboard() {
     }
   }, [selectedRegionSlug, selectedRouteSlug])
 
-  function handleOpenEditorModal(itemToEdit?: CatalogItemApi | null) {
-    setPoiToEdit(itemToEdit || null)
+  // Busca resumo operacional para o Hero (contadores reais por região)
+  useEffect(() => {
+    if (!selectedRegionSlug) return
+
+    let active = true
+    fetchDashboardSummary(selectedRegionSlug)
+      .then((data) => {
+        if (active) {
+          setSummaryLoading(false)
+          setSummaryError(null)
+          setDashboardSummary(data)
+        }
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setSummaryLoading(false)
+          setDashboardSummary(null)
+          setSummaryError(getAdminRequestError(err))
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [selectedRegionSlug])
+
+  function handleOpenEditorModal(itemToEdit: CatalogItemApi) {
+    setPoiToEdit(itemToEdit)
     setIsEditorModalOpen(true)
   }
 
   function handleSavePoi(savedPoi: CatalogItemApi) {
     setCatalogItems((prev) => {
-      const existsIndex = prev.findIndex((p) => p.id === savedPoi.id)
+      const existsIndex = prev.findIndex(
+        (item) => item.actor?.id === savedPoi.actor?.id,
+      )
       if (existsIndex >= 0) {
         const next = [...prev]
         next[existsIndex] = savedPoi
         return next
       }
-      setRoutes((prevRoutes) =>
-        prevRoutes.map((r) =>
-          r.slug === selectedRouteSlug
-            ? { ...r, actors_count: (r.actors_count || 0) + 1 }
-            : r,
-        ),
-      )
-      return [savedPoi, ...prev]
+      return prev
     })
   }
 
+  const selectedRegion = regions.find((r) => r.slug === selectedRegionSlug)
   const selectedRegionName =
-    regions.find((r) => r.slug === selectedRegionSlug)?.name ||
+    selectedRegion?.public_name ||
     selectedRegionSlug ||
     'Nenhuma região selecionada'
   const selectedRouteName =
@@ -238,7 +296,7 @@ export function OperationalDashboard() {
           >
             {regions.map((r) => (
               <option key={r.slug} value={r.slug}>
-                {r.name}
+                {r.public_name}
               </option>
             ))}
           </select>
@@ -276,9 +334,17 @@ export function OperationalDashboard() {
 
       <HeroFocus
         activeRouteName={selectedRouteName}
-        alertsCount={0}
+        alertsCount={
+          summaryLoading || Boolean(summaryError) || !dashboardSummary
+            ? null
+            : dashboardSummary.active_alerts_count
+        }
         onNavigateTab={setActiveTab}
-        pendingRevisionsCount={0}
+        pendingRevisionsCount={
+          summaryLoading || Boolean(summaryError) || !dashboardSummary
+            ? null
+            : dashboardSummary.pending_revisions_count
+        }
         regionName={selectedRegionName}
         routeCount={routes.length}
       />
@@ -385,7 +451,8 @@ export function OperationalDashboard() {
           <AppAnalyticsView
             catalogItems={catalogItems}
             isLoading={isLoading}
-            requestError={routesError}
+            requestError={routesError ?? catalogError}
+            onOpenCreateModal={() => setIsCreateModalOpen(true)}
             onOpenEditorModal={handleOpenEditorModal}
             onSelectRoute={setSelectedRouteSlug}
             regionSlug={selectedRegionSlug}
@@ -395,12 +462,7 @@ export function OperationalDashboard() {
         )}
 
         {activeTab === 'routes' && (
-          <RouteReadinessView
-            isLoading={isLoading}
-            requestError={routesError}
-            regionSlug={selectedRegionSlug}
-            routes={routes}
-          />
+          <RouteReadinessView regionSlug={selectedRegionSlug} />
         )}
 
         {activeTab === 'reports' && (
@@ -424,8 +486,18 @@ export function OperationalDashboard() {
         isOpen={isEditorModalOpen}
         onClose={() => setIsEditorModalOpen(false)}
         onSave={handleSavePoi}
-        regionSlug={selectedRegionSlug}
+        regionId={selectedRegion?.id || ''}
         routeSlug={selectedRouteSlug}
+      />
+
+      <SupportPointCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={() => setIsCreateModalOpen(false)}
+        regionId={selectedRegion?.id || ''}
+        regionSlug={selectedRegionSlug}
+        routes={routes}
+        selectedRouteSlug={selectedRouteSlug}
       />
     </div>
   )

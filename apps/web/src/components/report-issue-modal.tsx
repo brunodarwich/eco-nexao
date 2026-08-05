@@ -2,7 +2,7 @@
 
 import { AlertTriangle, CheckCircle2, MessageSquare, X } from 'lucide-react'
 import { useState } from 'react'
-import { useModalA11y } from '../lib/use-modal-a11y'
+import { useModalA11y } from '@econexao/ui/use-modal-a11y'
 
 interface ReportIssueModalProps {
   isOpen: boolean

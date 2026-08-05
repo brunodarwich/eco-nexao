@@ -1,4 +1,5 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,7 +23,17 @@ class AuditEventListView(APIView):
         operation_id="listAdminAuditEvents",
         tags=["Admin audit"],
         parameters=[AuditEventFilterSerializer],
-        responses={200: AuditEventSerializer(many=True)},
+        responses={
+            200: AuditEventSerializer(many=True),
+            401: inline_serializer(
+                name="AuditError401",
+                fields={"detail": serializers.CharField()},
+            ),
+            403: inline_serializer(
+                name="AuditError403",
+                fields={"detail": serializers.CharField()},
+            ),
+        },
     )
     def get(self, request: Request) -> Response:
         filters = AuditEventFilterSerializer(data=request.query_params)

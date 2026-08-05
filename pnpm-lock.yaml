@@ -38,6 +38,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@econexao/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@econexao/ui':
         specifier: workspace:*
         version: link:../../packages/ui

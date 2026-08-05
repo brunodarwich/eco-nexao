@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+  '/api/v1/admin/analytics/operational': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations['retrieveAdminOperationalAnalytics']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/admin/analytics/summary': {
     parameters: {
       query?: never
@@ -11,11 +27,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /**
-     * @description Visão resumida de analytics agregada para o painel administrativo.
-     *     Protegido por autenticação e livre de identificadores individuais.
-     */
-    get: operations['api_v1_admin_analytics_summary_retrieve']
+    get: operations['retrieveAdminAnalyticsSummary']
     put?: never
     post?: never
     delete?: never
@@ -96,6 +108,23 @@ export interface paths {
       cookie?: never
     }
     get: operations['getAdminSession']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/admin/dashboard/summary': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description Retorna contadores operacionais consolidados sem dados pessoais (PII) por região. */
+    get: operations['api_v1_admin_dashboard_summary_retrieve']
     put?: never
     post?: never
     delete?: never
@@ -298,6 +327,23 @@ export interface paths {
     patch: operations['api_v1_admin_reports_partial_update']
     trace?: never
   }
+  '/api/v1/admin/routes/readiness': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description DTO operacional, deliberadamente separado de contratos públicos de rota. */
+    get: operations['listAdminRouteReadiness']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/events/batch': {
     parameters: {
       query?: never
@@ -307,11 +353,7 @@ export interface paths {
     }
     get?: never
     put?: never
-    /**
-     * @description Ingestão pública em lote de eventos de analytics pseudonimizados.
-     *     Aplica allowlist estrita e rejeição de dados pessoais ou coordenadas.
-     */
-    post: operations['api_v1_events_batch_create']
+    post: operations['createPublicAnalyticsBatch']
     delete?: never
     options?: never
     head?: never
@@ -450,44 +492,32 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/admin/catalog/support-points/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * @description Cria transacionalmente um ponto de apoio administrativo como rascunho.
+     *     A operação nunca publica, envia para revisão ou mescla duplicatas automaticamente.
+     *     Este contrato antecede a implementação do endpoint e deve ser refletido nas anotações
+     *     Django antes da ativação da rota.
+     */
+    post: operations['createAdminSupportPoint']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
   schemas: {
-    /**
-     * @description * `auth.login` - Login administrativo
-     *     * `auth.logout` - Logout administrativo
-     *     * `editorial.approve` - Aprovação editorial
-     *     * `publication.publish` - Publicação
-     *     * `publication.restore` - Restauração
-     *     * `external.discovery` - Descoberta externa
-     *     * `import.commit` - Confirmação de importação
-     *     * `report.moderate` - Moderação de relato
-     * @enum {string}
-     */
-    ActionEnum:
-      | 'auth.login'
-      | 'auth.logout'
-      | 'editorial.approve'
-      | 'publication.publish'
-      | 'publication.restore'
-      | 'external.discovery'
-      | 'import.commit'
-      | 'report.moderate'
-    /**
-     * @description * `business` - Empresa
-     *     * `individual_provider` - Prestador individual
-     *     * `community` - Comunidade
-     *     * `institution` - Instituição
-     *     * `support` - Ponto de apoio
-     * @enum {string}
-     */
-    ActorKindEnum:
-      | 'business'
-      | 'individual_provider'
-      | 'community'
-      | 'institution'
-      | 'support'
     AdminIdentity: {
       id: string
       username: string
@@ -498,33 +528,57 @@ export interface components {
     AdminReport: {
       /** Format: uuid */
       readonly id: string
-      readonly report_type: components['schemas']['ReportTypeEnum']
-      readonly target_type: components['schemas']['TargetTypeEf3Enum']
+      /**
+       * @description * `incorrect_info` - Informação Incorreta
+       *     * `closed_location` - Local Fechado ou Inacessível
+       *     * `wrong_contact` - Contato Desatualizado
+       *     * `safety_warning` - Alerta de Segurança
+       *     * `other` - Outro Assunto
+       * @enum {string}
+       */
+      readonly report_type:
+        | 'incorrect_info'
+        | 'closed_location'
+        | 'wrong_contact'
+        | 'safety_warning'
+        | 'other'
+      /**
+       * @description * `route` - Rota
+       *     * `actor` - Ator / Ponto Local
+       *     * `general` - Geral
+       * @enum {string}
+       */
+      readonly target_type: 'route' | 'actor' | 'general'
       /** Format: uuid */
       readonly target_id: string | null
       readonly target_slug: string
       readonly region_slug: string
       readonly description: string
       readonly reporter_contact: string
-      status?: components['schemas']['AdminReportStatusEnum']
+      /**
+       * @description * `pending` - Pendente
+       *     * `reviewed` - Revisado
+       *     * `rejected` - Rejeitado
+       *     * `actioned` - Ação Concluída
+       * @enum {string}
+       */
+      status?: 'pending' | 'reviewed' | 'rejected' | 'actioned'
       moderation_note?: string
       /** Format: date-time */
       readonly created_at: string
       /** Format: date-time */
       readonly updated_at: string
     }
-    /**
-     * @description * `pending` - Pendente
-     *     * `reviewed` - Revisado
-     *     * `rejected` - Rejeitado
-     *     * `actioned` - Ação Concluída
-     * @enum {string}
-     */
-    AdminReportStatusEnum: 'pending' | 'reviewed' | 'rejected' | 'actioned'
     Alert: {
       /** Format: uuid */
       readonly id: string
-      severity: components['schemas']['AlertSeverityEnum']
+      /**
+       * @description * `info` - Informativo
+       *     * `warning` - Atenção
+       *     * `critical` - Crítico
+       * @enum {string}
+       */
+      severity: 'info' | 'warning' | 'critical'
       title: string
       description: string
       alternative?: string
@@ -535,15 +589,13 @@ export interface components {
       /** Format: date-time */
       readonly updated_at: string
     }
-    /**
-     * @description * `info` - Informativo
-     *     * `warning` - Atenção
-     *     * `critical` - Crítico
-     * @enum {string}
-     */
-    AlertSeverityEnum: 'info' | 'warning' | 'critical'
     AnalyticsBatch: {
+      consent_granted: boolean
       events: components['schemas']['AnalyticsEventInput'][]
+    }
+    AnalyticsBatchResponse: {
+      received: number
+      status: string
     }
     AnalyticsEventInput: {
       /** Format: uuid */
@@ -552,25 +604,35 @@ export interface components {
       schema_version?: string
       /** Format: date-time */
       occurred_at: string
-      /** Format: uuid */
-      anonymous_id: string
-      /** Format: uuid */
-      session_id?: string | null
-      /** Format: uuid */
-      consent_id?: string | null
-      consent_version?: string
-      app_version?: string
-      screen_name?: string
-      region_id?: string
+      region_id: string
       route_id?: string
       actor_id?: string
-      stage_id?: string
-      source?: string
-      campaign_id?: string
-      device_class?: string
-      network_class?: string
-      display_mode?: string
-      properties?: unknown
+    }
+    AnalyticsMetric: {
+      /**
+       * @description * `contact_opened` - contact_opened
+       *     * `offline_download_completed` - offline_download_completed
+       *     * `route_opened` - route_opened
+       *     * `session_opened` - session_opened
+       * @enum {string}
+       */
+      event_name:
+        | 'contact_opened'
+        | 'offline_download_completed'
+        | 'route_opened'
+        | 'session_opened'
+      count: number | null
+      suppressed: boolean
+    }
+    AnalyticsSummaryResponse: {
+      total_events: number
+      aggregates: components['schemas']['DailyAnalyticsAggregate'][]
+    }
+    AuditError401: {
+      detail: string
+    }
+    AuditError403: {
+      detail: string
     }
     AuditEvent: {
       /** Format: uuid */
@@ -578,14 +640,39 @@ export interface components {
       readonly actor_id: string
       /** Format: uuid */
       readonly region_id: string | null
-      readonly action: components['schemas']['ActionEnum']
+      /**
+       * @description * `auth.login` - Login administrativo
+       *     * `auth.logout` - Logout administrativo
+       *     * `editorial.approve` - Aprovação editorial
+       *     * `publication.publish` - Publicação
+       *     * `publication.restore` - Restauração
+       *     * `external.discovery` - Descoberta externa
+       *     * `import.commit` - Confirmação de importação
+       *     * `report.moderate` - Moderação de relato
+       *     * `catalog.support_point.create` - Cadastro de ponto de apoio
+       * @enum {string}
+       */
+      readonly action:
+        | 'auth.login'
+        | 'auth.logout'
+        | 'editorial.approve'
+        | 'publication.publish'
+        | 'publication.restore'
+        | 'external.discovery'
+        | 'import.commit'
+        | 'report.moderate'
+        | 'catalog.support_point.create'
       readonly target_type: string
       readonly target_id: string
       /** Format: uuid */
       readonly request_id: string
       readonly reason: string
       readonly metadata: unknown
-      readonly result: components['schemas']['ResultEnum']
+      /**
+       * @description * `success` - Sucesso
+       * @enum {string}
+       */
+      readonly result: 'success'
       /** Format: date-time */
       readonly occurred_at: string
     }
@@ -598,18 +685,17 @@ export interface components {
       confirmed: boolean
     }
     CatalogCsvIssue: {
-      severity: components['schemas']['CatalogCsvIssueSeverityEnum']
+      /**
+       * @description * `error` - error
+       *     * `warning` - warning
+       * @enum {string}
+       */
+      severity: 'error' | 'warning'
       code: string
       line: number
       column: string | null
       message: string
     }
-    /**
-     * @description * `error` - error
-     *     * `warning` - warning
-     * @enum {string}
-     */
-    CatalogCsvIssueSeverityEnum: 'error' | 'warning'
     CatalogCsvPreview: {
       create_count: number
       update_count: number
@@ -619,7 +705,13 @@ export interface components {
     CatalogCsvPreviewRow: {
       line: number
       external_id: string
-      operation: components['schemas']['OperationEnum']
+      /**
+       * @description * `create` - create
+       *     * `update` - update
+       *     * `archive` - archive
+       * @enum {string}
+       */
+      operation: 'create' | 'update' | 'archive'
     }
     CatalogCsvValidationRequest: {
       /** Format: uri */
@@ -647,7 +739,11 @@ export interface components {
     CatalogImportCommitResponse: {
       /** Format: uuid */
       id: string
-      status: components['schemas']['CatalogImportCommitResponseStatusEnum']
+      /**
+       * @description * `committed` - committed
+       * @enum {string}
+       */
+      status: 'committed'
       replayed: boolean
       sha256: string
       row_count: number
@@ -658,22 +754,14 @@ export interface components {
       /** Format: date-time */
       committed_at: string
     }
-    /**
-     * @description * `committed` - committed
-     * @enum {string}
-     */
-    CatalogImportCommitResponseStatusEnum: 'committed'
-    /**
-     * @description * `phone` - Telefone
-     *     * `whatsapp` - WhatsApp
-     *     * `email` - E-mail
-     *     * `website` - Site
-     *     * `instagram` - Instagram
-     * @enum {string}
-     */
-    ChannelTypeEnum: 'phone' | 'whatsapp' | 'email' | 'website' | 'instagram'
     CreateEditorialRevision: {
-      target_type: components['schemas']['TargetTypeFdcEnum']
+      /**
+       * @description * `region` - Região
+       *     * `route` - Rota
+       *     * `actor` - Ator
+       * @enum {string}
+       */
+      target_type: 'region' | 'route' | 'actor'
       /** Format: uuid */
       target_id: string
       /** Format: uuid */
@@ -683,23 +771,43 @@ export interface components {
     CsrfResponse: {
       csrf_token: string
     }
-    /**
-     * @description * `easy` - Fácil
-     *     * `moderate` - Moderada
-     *     * `hard` - Difícil
-     * @enum {string}
-     */
-    DifficultyEnum: 'easy' | 'moderate' | 'hard'
+    DailyAnalyticsAggregate: {
+      /** Format: date */
+      date: string
+      event_name: string
+      region_slug: string
+      route_slug: string
+      count: number
+    }
+    DashboardSummary: {
+      region_slug: string
+      priority_reports_count: number
+      active_alerts_count: number
+      pending_revisions_count: number
+    }
     EditorialRevision: {
       /** Format: uuid */
       readonly id: string
       /** Format: uuid */
       readonly region_id: string
-      readonly target_type: components['schemas']['TargetTypeFdcEnum']
+      /**
+       * @description * `region` - Região
+       *     * `route` - Rota
+       *     * `actor` - Ator
+       * @enum {string}
+       */
+      readonly target_type: 'region' | 'route' | 'actor'
       /** Format: uuid */
       readonly target_id: string
       readonly sequence: number
-      readonly status: components['schemas']['EditorialRevisionStatusEnum']
+      /**
+       * @description * `draft` - Rascunho
+       *     * `review` - Em revisão
+       *     * `approved` - Aprovado
+       *     * `published` - Publicado
+       * @enum {string}
+       */
+      readonly status: 'draft' | 'review' | 'approved' | 'published'
       readonly base_snapshot: unknown
       readonly snapshot: unknown
       readonly diff: unknown
@@ -718,14 +826,6 @@ export interface components {
       /** Format: date-time */
       readonly updated_at: string
     }
-    /**
-     * @description * `draft` - Rascunho
-     *     * `review` - Em revisão
-     *     * `approved` - Aprovado
-     *     * `published` - Publicado
-     * @enum {string}
-     */
-    EditorialRevisionStatusEnum: 'draft' | 'review' | 'approved' | 'published'
     EditorialWorkflowError: {
       code: string
       message: string
@@ -775,6 +875,14 @@ export interface components {
       result_count: number
       candidates: components['schemas']['GooglePlacesCandidate'][]
     }
+    LoginError401: {
+      code: string
+      message: string
+      field_errors: {
+        [key: string]: unknown
+      }
+      request_id: string
+    }
     LoginRequest: {
       username: string
       password: string
@@ -790,32 +898,55 @@ export interface components {
       exception_date?: string | null
       public_note?: string
     }
-    /**
-     * @description * `create` - create
-     *     * `update` - update
-     *     * `archive` - archive
-     * @enum {string}
-     */
-    OperationEnum: 'create' | 'update' | 'archive'
-    /**
-     * @description * `editorial` - Editorial
-     *     * `partner` - Parceiro
-     *     * `sponsored` - Patrocinado
-     * @enum {string}
-     */
-    PartnershipTypeEnum: 'editorial' | 'partner' | 'sponsored'
+    OperationalAnalyticsResponse: {
+      region_slug: string
+      route_slug: string
+      /** Format: date */
+      start: string
+      /** Format: date */
+      end: string
+      privacy_threshold: number
+      metrics: components['schemas']['AnalyticsMetric'][]
+      ranking: components['schemas']['SupportPointRanking'][]
+    }
     PatchedAdminReport: {
       /** Format: uuid */
       readonly id?: string
-      readonly report_type?: components['schemas']['ReportTypeEnum']
-      readonly target_type?: components['schemas']['TargetTypeEf3Enum']
+      /**
+       * @description * `incorrect_info` - Informação Incorreta
+       *     * `closed_location` - Local Fechado ou Inacessível
+       *     * `wrong_contact` - Contato Desatualizado
+       *     * `safety_warning` - Alerta de Segurança
+       *     * `other` - Outro Assunto
+       * @enum {string}
+       */
+      readonly report_type?:
+        | 'incorrect_info'
+        | 'closed_location'
+        | 'wrong_contact'
+        | 'safety_warning'
+        | 'other'
+      /**
+       * @description * `route` - Rota
+       *     * `actor` - Ator / Ponto Local
+       *     * `general` - Geral
+       * @enum {string}
+       */
+      readonly target_type?: 'route' | 'actor' | 'general'
       /** Format: uuid */
       readonly target_id?: string | null
       readonly target_slug?: string
       readonly region_slug?: string
       readonly description?: string
       readonly reporter_contact?: string
-      status?: components['schemas']['AdminReportStatusEnum']
+      /**
+       * @description * `pending` - Pendente
+       *     * `reviewed` - Revisado
+       *     * `rejected` - Rejeitado
+       *     * `actioned` - Ação Concluída
+       * @enum {string}
+       */
+      status?: 'pending' | 'reviewed' | 'rejected' | 'actioned'
       moderation_note?: string
       /** Format: date-time */
       readonly created_at?: string
@@ -831,11 +962,30 @@ export interface components {
       readonly id: string
       slug: string
       public_name: string
-      actor_kind: components['schemas']['ActorKindEnum']
+      /**
+       * @description * `business` - Empresa
+       *     * `individual_provider` - Prestador individual
+       *     * `community` - Comunidade
+       *     * `institution` - Instituição
+       *     * `support` - Ponto de apoio
+       * @enum {string}
+       */
+      actor_kind:
+        | 'business'
+        | 'individual_provider'
+        | 'community'
+        | 'institution'
+        | 'support'
       short_description: string
       full_description?: string
       services?: unknown
-      partnership_type?: components['schemas']['PartnershipTypeEnum']
+      /**
+       * @description * `editorial` - Editorial
+       *     * `partner` - Parceiro
+       *     * `sponsored` - Patrocinado
+       * @enum {string}
+       */
+      partnership_type?: 'editorial' | 'partner' | 'sponsored'
       readonly category_slug: string
       readonly category_name: string
       readonly locations: components['schemas']['PublicActorLocation'][]
@@ -857,7 +1007,15 @@ export interface components {
       readonly updated_at: string
     }
     PublicContactChannel: {
-      channel_type: components['schemas']['ChannelTypeEnum']
+      /**
+       * @description * `phone` - Telefone
+       *     * `whatsapp` - WhatsApp
+       *     * `email` - E-mail
+       *     * `website` - Site
+       *     * `instagram` - Instagram
+       * @enum {string}
+       */
+      channel_type: 'phone' | 'whatsapp' | 'email' | 'website' | 'instagram'
       public_value?: string
       /** Format: date-time */
       verified_at?: string | null
@@ -865,8 +1023,27 @@ export interface components {
     PublicReportCreate: {
       /** Format: uuid */
       readonly id: string
-      report_type?: components['schemas']['ReportTypeEnum']
-      target_type?: components['schemas']['TargetTypeEf3Enum']
+      /**
+       * @description * `incorrect_info` - Informação Incorreta
+       *     * `closed_location` - Local Fechado ou Inacessível
+       *     * `wrong_contact` - Contato Desatualizado
+       *     * `safety_warning` - Alerta de Segurança
+       *     * `other` - Outro Assunto
+       * @enum {string}
+       */
+      report_type?:
+        | 'incorrect_info'
+        | 'closed_location'
+        | 'wrong_contact'
+        | 'safety_warning'
+        | 'other'
+      /**
+       * @description * `route` - Rota
+       *     * `actor` - Ator / Ponto Local
+       *     * `general` - Geral
+       * @enum {string}
+       */
+      target_type?: 'route' | 'actor' | 'general'
       /** Format: uuid */
       target_id?: string | null
       target_slug?: string
@@ -891,7 +1068,13 @@ export interface components {
       readonly restored_from_id: string | null
       /** Format: uuid */
       readonly region_id: string
-      readonly target_type: components['schemas']['TargetTypeFdcEnum']
+      /**
+       * @description * `region` - Região
+       *     * `route` - Rota
+       *     * `actor` - Ator
+       * @enum {string}
+       */
+      readonly target_type: 'region' | 'route' | 'actor'
       /** Format: uuid */
       readonly target_id: string
       readonly version: number
@@ -915,6 +1098,17 @@ export interface components {
       critical_information_current: boolean
       critical_override_reason?: string
     }
+    ReadinessDimensions: {
+      content: number
+      trace: number
+      catalog: number
+      alerts: number
+      offline: number
+    }
+    RegionRouteReadinessResponse: {
+      region_slug: string
+      routes: components['schemas']['RouteReadiness'][]
+    }
     RegionSummary: {
       /** Format: uuid */
       readonly id: string
@@ -931,20 +1125,6 @@ export interface components {
       /** Format: date-time */
       readonly updated_at: string
     }
-    /**
-     * @description * `incorrect_info` - Informação Incorreta
-     *     * `closed_location` - Local Fechado ou Inacessível
-     *     * `wrong_contact` - Contato Desatualizado
-     *     * `safety_warning` - Alerta de Segurança
-     *     * `other` - Outro Assunto
-     * @enum {string}
-     */
-    ReportTypeEnum:
-      | 'incorrect_info'
-      | 'closed_location'
-      | 'wrong_contact'
-      | 'safety_warning'
-      | 'other'
     RestorePublicationVersion: {
       expected_current_version: number
       reason: string
@@ -953,11 +1133,6 @@ export interface components {
       critical_information_current: boolean
       critical_override_reason?: string
     }
-    /**
-     * @description * `success` - Sucesso
-     * @enum {string}
-     */
-    ResultEnum: 'success'
     ReturnEditorialRevision: {
       lock_version: number
       reason: string
@@ -966,7 +1141,17 @@ export interface components {
       lock_version: number
     }
     RouteCatalogItem: {
-      route_role: components['schemas']['RouteRoleEnum']
+      /**
+       * @description * `experience` - Experiência
+       *     * `support` - Apoio
+       *     * `start` - Início
+       *     * `stop` - Parada
+       *     * `emergency` - Emergência
+       *     * `service` - Serviço
+       * @enum {string}
+       */
+      route_role:
+        'experience' | 'support' | 'start' | 'stop' | 'emergency' | 'service'
       editorial_position?: number
       is_featured?: boolean
       sponsorship_label?: string
@@ -981,7 +1166,13 @@ export interface components {
       public_name: string
       short_promise: string
       duration_minutes: number
-      difficulty: components['schemas']['DifficultyEnum']
+      /**
+       * @description * `easy` - Fácil
+       *     * `moderate` - Moderada
+       *     * `hard` - Difícil
+       * @enum {string}
+       */
+      difficulty: 'easy' | 'moderate' | 'hard'
       /** Format: decimal */
       estimated_cost_min?: string | null
       /** Format: decimal */
@@ -999,17 +1190,40 @@ export interface components {
       readonly segments: components['schemas']['RouteSegment'][]
       readonly alerts: components['schemas']['Alert'][]
     }
-    /**
-     * @description * `experience` - Experiência
-     *     * `support` - Apoio
-     *     * `start` - Início
-     *     * `stop` - Parada
-     *     * `emergency` - Emergência
-     *     * `service` - Serviço
-     * @enum {string}
-     */
-    RouteRoleEnum:
-      'experience' | 'support' | 'start' | 'stop' | 'emergency' | 'service'
+    RouteReadiness: {
+      /** Format: uuid */
+      route_id: string
+      slug: string
+      title: string
+      /**
+       * @description * `draft` - Rascunho
+       *     * `review` - Em revisão
+       *     * `approved` - Aprovado
+       *     * `published` - Publicado
+       *     * `suspended` - Suspenso
+       *     * `archived` - Arquivado
+       * @enum {string}
+       */
+      editorial_status:
+        'draft' | 'review' | 'approved' | 'published' | 'suspended' | 'archived'
+      formula_version: string
+      weights: components['schemas']['ReadinessDimensions']
+      dimensions: components['schemas']['ReadinessDimensions']
+      score: number | null
+      is_ready: boolean
+      blocking_reasons: string[]
+      missing_required_fields: string[]
+      stages_count: number
+      segments_count: number
+      published_points_count: number
+      points_in_review_count: number
+      verified_contacts_count: number
+      unverified_public_contacts_count: number
+      blocking_alerts_count: number
+      /** Format: date-time */
+      last_revision_at: string | null
+      published_version: number | null
+    }
     RouteSegment: {
       /** Format: uuid */
       readonly id: string
@@ -1042,7 +1256,15 @@ export interface components {
       }
       arrival_guidance?: string
       duration_minutes?: number | null
-      stage_type: components['schemas']['StageTypeEnum']
+      /**
+       * @description * `start` - Início
+       *     * `stop` - Parada
+       *     * `experience` - Experiência
+       *     * `support` - Apoio
+       *     * `end` - Fim
+       * @enum {string}
+       */
+      stage_type: 'start' | 'stop' | 'experience' | 'support' | 'end'
       is_optional?: boolean
       /** Format: date-time */
       readonly updated_at: string
@@ -1054,7 +1276,13 @@ export interface components {
       public_name: string
       short_promise: string
       duration_minutes: number
-      difficulty: components['schemas']['DifficultyEnum']
+      /**
+       * @description * `easy` - Fácil
+       *     * `moderate` - Moderada
+       *     * `hard` - Difícil
+       * @enum {string}
+       */
+      difficulty: 'easy' | 'moderate' | 'hard'
       /** Format: decimal */
       estimated_cost_min?: string | null
       /** Format: decimal */
@@ -1069,29 +1297,152 @@ export interface components {
       authenticated: boolean
       user: components['schemas']['AdminIdentity'] | null
     }
-    /**
-     * @description * `start` - Início
-     *     * `stop` - Parada
-     *     * `experience` - Experiência
-     *     * `support` - Apoio
-     *     * `end` - Fim
-     * @enum {string}
-     */
-    StageTypeEnum: 'start' | 'stop' | 'experience' | 'support' | 'end'
-    /**
-     * @description * `route` - Rota
-     *     * `actor` - Ator / Ponto Local
-     *     * `general` - Geral
-     * @enum {string}
-     */
-    TargetTypeEf3Enum: 'route' | 'actor' | 'general'
-    /**
-     * @description * `region` - Região
-     *     * `route` - Rota
-     *     * `actor` - Ator
-     * @enum {string}
-     */
-    TargetTypeFdcEnum: 'region' | 'route' | 'actor'
+    SupportPointRanking: {
+      /** Format: uuid */
+      support_point_id: string
+      support_point_name: string
+      contacts: number
+    }
+    SupportPointActorInput: {
+      /** Format: uuid */
+      category_id: string
+      public_name: string
+      /** @default  */
+      legal_name: string
+      short_description: string
+      /** @default  */
+      full_description: string
+      /** @default [] */
+      services: string[]
+    }
+    SupportPointAddressInput: {
+      street?: string
+      number?: string
+      complement?: string
+      neighborhood?: string
+      locality: string
+      administrative_area?: string
+      postal_code?: string
+      country_code: string
+    }
+    SupportPointLocationInput: {
+      label: string
+      address_fields: components['schemas']['SupportPointAddressInput']
+      /** Format: double */
+      latitude: number
+      /** Format: double */
+      longitude: number
+      public_visibility: boolean
+    }
+    SupportPointPhoneContactInput: {
+      /** @enum {string} */
+      channel_type: 'phone' | 'whatsapp'
+      value: string
+      /** @enum {boolean} */
+      is_public: true
+      /** @enum {string} */
+      source_type: 'consolidated_sheet' | 'tourism_inventory' | 'other_public'
+      source_reference: string
+      /** Format: date-time */
+      verified_at: string
+    }
+    SupportPointEmailContactInput: {
+      /** @enum {string} */
+      channel_type: 'email'
+      /** Format: email */
+      value: string
+      /** @enum {boolean} */
+      is_public: true
+      /** @enum {string} */
+      source_type: 'consolidated_sheet' | 'tourism_inventory' | 'other_public'
+      source_reference: string
+      /** Format: date-time */
+      verified_at: string
+    }
+    SupportPointUrlContactInput: {
+      /** @enum {string} */
+      channel_type: 'website' | 'instagram'
+      /** Format: uri */
+      value: string
+      /** @enum {boolean} */
+      is_public: true
+      /** @enum {string} */
+      source_type: 'consolidated_sheet' | 'tourism_inventory' | 'other_public'
+      source_reference: string
+      /** Format: date-time */
+      verified_at: string
+    }
+    SupportPointContactInput:
+      | components['schemas']['SupportPointPhoneContactInput']
+      | components['schemas']['SupportPointEmailContactInput']
+      | components['schemas']['SupportPointUrlContactInput']
+    SupportPointRouteLinkInput: {
+      /** Format: uuid */
+      route_id: string
+      /** Format: uuid */
+      stage_id?: string | null
+      /** @enum {string} */
+      route_role:
+        'experience' | 'support' | 'start' | 'stop' | 'emergency' | 'service'
+      editorial_position: number
+      is_featured: boolean
+      sponsorship_label: string
+    }
+    SupportPointCreateRequest: {
+      actor: components['schemas']['SupportPointActorInput']
+      location: components['schemas']['SupportPointLocationInput']
+      contacts: components['schemas']['SupportPointContactInput'][]
+      route_links: components['schemas']['SupportPointRouteLinkInput'][]
+    }
+    SupportPointRouteLinkResponse: {
+      /** Format: uuid */
+      id: string
+      /** Format: uuid */
+      route_id: string
+      /** Format: uuid */
+      stage_id: string | null
+    }
+    SupportPointCreateResponse: {
+      /** Format: uuid */
+      id: string
+      /** @enum {string} */
+      actor_kind: 'support'
+      /** @enum {string} */
+      editorial_status: 'draft'
+      /** @enum {string} */
+      partnership_type: 'editorial'
+      /** Format: uuid */
+      region_id: string
+      /** Format: uuid */
+      location_id: string
+      contact_ids: string[]
+      route_links: components['schemas']['SupportPointRouteLinkResponse'][]
+      /** Format: date-time */
+      created_at: string
+    }
+    SupportPointCreateError: {
+      /** @enum {string} */
+      code:
+        | 'validation_error'
+        | 'invalid_relation'
+        | 'invalid_csrf'
+        | 'authentication_required'
+        | 'permission_denied'
+        | 'duplicate_support_point'
+        | 'idempotency_conflict'
+        | 'concurrent_conflict'
+        | 'rate_limited'
+        | 'internal_error'
+        | 'region_boundary_unavailable'
+        | 'request_failed'
+      message: string
+      field_errors: {
+        [key: string]: string[]
+      }
+      /** Format: uuid */
+      request_id: string
+      duplicate_candidate_ids?: string[]
+    }
   }
   responses: never
   parameters: never
@@ -1101,7 +1452,81 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
-  api_v1_admin_analytics_summary_retrieve: {
+  retrieveAdminOperationalAnalytics: {
+    parameters: {
+      query: {
+        end?: string
+        region_slug: string
+        route_slug?: string
+        start?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['OperationalAnalyticsResponse']
+        }
+      }
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            [key: string]: unknown
+          }
+        }
+      }
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+    }
+  }
+  retrieveAdminAnalyticsSummary: {
     parameters: {
       query?: never
       header?: never
@@ -1115,16 +1540,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': {
-            total_events?: number
-            aggregates?: {
-              date?: string
-              event_name?: string
-              region_slug?: string
-              route_slug?: string
-              count?: number
-            }[]
-          }
+          'application/json': components['schemas']['AnalyticsSummaryResponse']
         }
       }
       401: {
@@ -1161,6 +1577,7 @@ export interface operations {
          *     * `external.discovery` - Descoberta externa
          *     * `import.commit` - Confirmação de importação
          *     * `report.moderate` - Moderação de relato
+         *     * `catalog.support_point.create` - Cadastro de ponto de apoio
          */
         action?:
           | 'auth.login'
@@ -1171,6 +1588,7 @@ export interface operations {
           | 'external.discovery'
           | 'import.commit'
           | 'report.moderate'
+          | 'catalog.support_point.create'
         limit?: number
         offset?: number
         region_id?: string
@@ -1189,6 +1607,22 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['AuditEvent'][]
+        }
+      }
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AuditError401']
+        }
+      }
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AuditError403']
         }
       }
     }
@@ -1235,6 +1669,14 @@ export interface operations {
           'application/json': components['schemas']['SessionResponse']
         }
       }
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LoginError401']
+        }
+      }
     }
   }
   logoutAdmin: {
@@ -1271,6 +1713,68 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['SessionResponse']
+        }
+      }
+    }
+  }
+  api_v1_admin_dashboard_summary_retrieve: {
+    parameters: {
+      query?: {
+        /** @description Slug da região para filtrar os contadores operacionais. */
+        region_slug?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['DashboardSummary']
+        }
+      }
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
         }
       }
     }
@@ -1822,7 +2326,78 @@ export interface operations {
       }
     }
   }
-  api_v1_events_batch_create: {
+  listAdminRouteReadiness: {
+    parameters: {
+      query: {
+        region_slug: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['RegionRouteReadinessResponse']
+        }
+      }
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            [key: string]: unknown
+          }
+        }
+      }
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
+          }
+        }
+      }
+    }
+  }
+  createPublicAnalyticsBatch: {
     parameters: {
       query?: never
       header?: never
@@ -1842,10 +2417,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': {
-            received?: number
-            status?: string
-          }
+          'application/json': components['schemas']['AnalyticsBatchResponse']
         }
       }
       400: {
@@ -1855,6 +2427,16 @@ export interface operations {
         content: {
           'application/json': {
             [key: string]: unknown
+          }
+        }
+      }
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': {
+            detail?: string
           }
         }
       }
@@ -2148,6 +2730,97 @@ export interface operations {
           'application/json': {
             [key: string]: unknown
           }
+        }
+      }
+    }
+  }
+  createAdminSupportPoint: {
+    parameters: {
+      query?: never
+      header: {
+        /** @description UUID v4 reutilizado somente pelo mesmo usuário, região e payload por 24 horas. */
+        'Idempotency-Key': string
+        /** @description Token CSRF correspondente à sessão administrativa. */
+        'X-CSRFToken': string
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SupportPointCreateRequest']
+      }
+    }
+    responses: {
+      /** @description Ponto de apoio criado exclusivamente como rascunho. */
+      201: {
+        headers: {
+          'Cache-Control'?: 'no-store'
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupportPointCreateResponse']
+        }
+      }
+      /** @description Corpo, CSRF, coordenadas, contatos, identificadores ou relações inválidos. */
+      400: {
+        headers: {
+          'Cache-Control'?: 'no-store'
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupportPointCreateError']
+        }
+      }
+      /** @description Sessão administrativa ausente ou expirada. */
+      401: {
+        headers: {
+          'Cache-Control'?: 'no-store'
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupportPointCreateError']
+        }
+      }
+      /** @description Papel, ação, escopo regional ou proteção CSRF insuficiente. */
+      403: {
+        headers: {
+          'Cache-Control'?: 'no-store'
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupportPointCreateError']
+        }
+      }
+      /** @description Duplicidade, conflito idempotente ou concorrência detectada. */
+      409: {
+        headers: {
+          'Cache-Control'?: 'no-store'
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupportPointCreateError']
+        }
+      }
+      /** @description Limite configurado para criação manual excedido. */
+      429: {
+        headers: {
+          'Cache-Control'?: 'no-store'
+          'Retry-After': number
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupportPointCreateError']
+        }
+      }
+      /** @description Falha interna segura; nenhuma parte do agregado permanece gravada. */
+      500: {
+        headers: {
+          'Cache-Control'?: 'no-store'
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupportPointCreateError']
         }
       }
     }

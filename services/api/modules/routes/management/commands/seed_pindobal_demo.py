@@ -22,16 +22,9 @@ from modules.routes.models import Alert, Route, RouteSegment, RouteStage
 class Command(BaseCommand):
     help = "Cria fixtures idempotentes e claramente demonstrativos da rota de Pindobal."
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--publish-demo",
-            action="store_true",
-            help="Publica os fixtures no ambiente de desenvolvimento configurado.",
-        )
-
     @transaction.atomic
     def handle(self, *args, **options):
-        status = EditorialStatus.PUBLISHED if options["publish_demo"] else EditorialStatus.DRAFT
+        status = EditorialStatus.DRAFT
         existing_region = Region.objects.filter(slug="santarem-alter-do-chao").first()
         region_defaults = {
             "public_name": "Santarém e Alter do Chão",
@@ -43,7 +36,6 @@ class Command(BaseCommand):
         }
         if not existing_region or existing_region.status != EditorialStatus.PUBLISHED:
             region_defaults["status"] = status
-            region_defaults["published_version"] = 1 if options["publish_demo"] else None
 
         region, _ = Region.objects.update_or_create(
             slug="santarem-alter-do-chao",
@@ -154,21 +146,29 @@ class Command(BaseCommand):
                 },
             )
 
+        existing_alert = Alert.objects.filter(
+            region=region,
+            route=route,
+            stage=None,
+            title="Informações demonstrativas",
+        ).first()
+        alert_defaults = {
+            "severity": Alert.Severity.WARNING,
+            "description": (
+                "Horários, acesso, preços e condições ainda precisam de verificação humana."
+            ),
+            "alternative": "Confirme com fontes locais antes de iniciar o deslocamento.",
+            "starts_at": make_aware(datetime(2026, 1, 1)),
+            "ends_at": make_aware(datetime(2030, 1, 1)),
+        }
+        if not existing_alert or existing_alert.status != EditorialStatus.PUBLISHED:
+            alert_defaults["status"] = status
         Alert.objects.update_or_create(
             region=region,
             route=route,
             stage=None,
             title="Informações demonstrativas",
-            defaults={
-                "severity": Alert.Severity.WARNING,
-                "description": (
-                    "Horários, acesso, preços e condições ainda precisam de verificação humana."
-                ),
-                "alternative": "Confirme com fontes locais antes de iniciar o deslocamento.",
-                "starts_at": make_aware(datetime(2026, 1, 1)),
-                "ends_at": make_aware(datetime(2030, 1, 1)),
-                "status": status,
-            },
+            defaults=alert_defaults,
         )
 
         actors = [
@@ -210,21 +210,24 @@ class Command(BaseCommand):
                     "is_active": True,
                 },
             )
+            existing_actor = Actor.objects.filter(external_id=definition["external_id"]).first()
+            actor_defaults = {
+                "actor_kind": definition["kind"],
+                "category": category,
+                "slug": definition["slug"],
+                "public_name": definition["name"],
+                "short_description": definition["description"],
+                "full_description": (
+                    f"{definition['description']} Não representa oferta comercial real."
+                ),
+                "services": ["atendimento demonstrativo"],
+                "partnership_type": Actor.PartnershipType.EDITORIAL,
+            }
+            if not existing_actor or existing_actor.editorial_status != EditorialStatus.PUBLISHED:
+                actor_defaults["editorial_status"] = status
             actor, _ = Actor.objects.update_or_create(
                 external_id=definition["external_id"],
-                defaults={
-                    "actor_kind": definition["kind"],
-                    "category": category,
-                    "slug": definition["slug"],
-                    "public_name": definition["name"],
-                    "short_description": definition["description"],
-                    "full_description": (
-                        f"{definition['description']} Não representa oferta comercial real."
-                    ),
-                    "services": ["atendimento demonstrativo"],
-                    "editorial_status": status,
-                    "partnership_type": Actor.PartnershipType.EDITORIAL,
-                },
+                defaults=actor_defaults,
             )
             location, _ = ActorLocation.objects.update_or_create(
                 actor=actor,
@@ -260,7 +263,8 @@ class Command(BaseCommand):
                     public_value=public_value,
                     defaults={
                         "is_public": True,
-                        "authorization_reference": "fixture:demo-pindobal",
+                        "source_type": "legacy",
+                        "source_reference": "fixture:demo-pindobal",
                     },
                 )
             RouteActor.objects.update_or_create(
@@ -275,7 +279,9 @@ class Command(BaseCommand):
                 },
             )
 
-        state = "publicados" if options["publish_demo"] else "criados como rascunho"
         self.stdout.write(
-            self.style.SUCCESS(f"Fixtures demonstrativos de Pindobal {state} com sucesso.")
+            self.style.SUCCESS(
+                "Fixtures demonstrativos de Pindobal criados ou atualizados como rascunho; "
+                "conteúdo já publicado foi preservado."
+            )
         )

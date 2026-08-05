@@ -1,24 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button } from '@econexao/ui/button'
 import { FeedbackState } from '@econexao/ui/feedback-state'
-import { AdminDataState, AdminRequestError } from './admin-data-state'
-
-export interface RouteApiSummary {
-  slug: string
-  title: string
-  summary?: string
-  distance_km?: number
-  estimated_minutes?: number
-  stages_count?: number
-  actors_count?: number
-  editorial_status?: string
-}
+import type { components } from '@econexao/contracts/api'
+import {
+  adminRequest,
+  getAdminRequestError,
+  type AdminRequestError,
+} from '../../lib/admin-api'
+import type { RouteApiSummary } from '../../lib/dashboard-routes'
+import { AdminDataState } from './admin-data-state'
 
 export interface CatalogItemApi {
   id?: string
-  editorial_status?: string
   actor?: {
     id: string
     display_name: string
@@ -45,7 +39,9 @@ interface AppAnalyticsViewProps {
   isLoading: boolean
   requestError?: AdminRequestError | null
   onSelectRoute: (slug: string) => void
-  onOpenEditorModal: (itemToEdit?: CatalogItemApi | null) => void
+  onOpenEditorModal: (itemToEdit: CatalogItemApi) => void
+  onOpenCreateModal?: () => void
+  operationalData?: components['schemas']['OperationalAnalyticsResponse']
 }
 
 export function AppAnalyticsView({
@@ -57,30 +53,38 @@ export function AppAnalyticsView({
   requestError,
   onSelectRoute,
   onOpenEditorModal,
+  onOpenCreateModal,
+  operationalData,
 }: AppAnalyticsViewProps) {
-  const [liveEventsTotal, setLiveEventsTotal] = useState<number | null>(null)
+  const [liveEventsError, setLiveEventsError] =
+    useState<AdminRequestError | null>(null)
+  const [operational, setOperational] = useState<
+    components['schemas']['OperationalAnalyticsResponse'] | null
+  >(operationalData ?? null)
 
   useEffect(() => {
-    async function fetchLiveAnalytics() {
+    async function fetchOperational() {
       try {
-        const res = await fetch(
-          `/api/admin/analytics/summary?region_slug=${regionSlug}`,
+        const data = await adminRequest<
+          components['schemas']['OperationalAnalyticsResponse']
+        >(
+          `analytics/operational?region_slug=${encodeURIComponent(regionSlug)}&route_slug=${encodeURIComponent(selectedRouteSlug)}`,
         )
-        if (res.ok) {
-          const data = await res.json()
-          if (typeof data.total_events === 'number') {
-            setLiveEventsTotal(data.total_events)
-          }
-        }
-      } catch {
-        // Fallback silencioso para estado local
+        setOperational(data)
+        setLiveEventsError(null)
+      } catch (error) {
+        setOperational(null)
+        setLiveEventsError(getAdminRequestError(error))
       }
     }
-    fetchLiveAnalytics()
-  }, [regionSlug])
+    if (selectedRouteSlug) void fetchOperational()
+  }, [regionSlug, selectedRouteSlug])
 
   if (requestError) {
     return <AdminDataState error={requestError} />
+  }
+  if (liveEventsError) {
+    return <AdminDataState error={liveEventsError} />
   }
 
   if (isLoading) {
@@ -106,27 +110,55 @@ export function AppAnalyticsView({
   const selectedRoute =
     routes.find((r) => r.slug === selectedRouteSlug) || routes[0]
 
-  const totalStages = routes.reduce((acc, r) => acc + (r.stages_count || 0), 0)
-  const totalActors = routes.reduce((acc, r) => acc + (r.actors_count || 0), 0)
-
   return (
     <div className="analytics-workspace">
       <div className="kpi-grid">
         <article className="kpi-card">
           <span className="kpi-icon">🗺️</span>
           <div className="kpi-body">
-            <span className="kpi-label">Rotas Ativas</span>
+            <span className="kpi-label">Rotas Publicadas</span>
             <span className="kpi-value">{routes.length}</span>
             <span className="kpi-subtext">em {regionSlug}</span>
           </div>
         </article>
 
+        {[
+          ['Sessões', 'session_opened', '🧭'],
+          ['Rotas abertas', 'route_opened', '🗺️'],
+          ['Contatos', 'contact_opened', '☎️'],
+          ['Downloads', 'offline_download_completed', '⬇️'],
+        ].map(([label, key, icon]) => {
+          const metric = operational?.metrics.find(
+            (item) => item.event_name === key,
+          )
+          return (
+            <article className="kpi-card" key={key}>
+              <span className="kpi-icon">{icon}</span>
+              <div className="kpi-body">
+                <span className="kpi-label">{label}</span>
+                <span className="kpi-value">{metric?.count ?? '—'}</span>
+                <span className="kpi-subtext">
+                  {metric && !metric.suppressed
+                    ? 'agregado consentido'
+                    : 'indisponível ou suprimido'}
+                </span>
+              </div>
+            </article>
+          )
+        })}
+
         <article className="kpi-card">
           <span className="kpi-icon">📍</span>
           <div className="kpi-body">
-            <span className="kpi-label">Estágios Mapeados</span>
-            <span className="kpi-value">{totalStages}</span>
-            <span className="kpi-subtext">trechos de rota</span>
+            <span className="kpi-label">Duração da Rota</span>
+            <span className="kpi-value">
+              {selectedRoute?.durationMinutes || '—'}
+            </span>
+            <span className="kpi-subtext">
+              {selectedRoute?.durationMinutes
+                ? 'minutos estimados'
+                : 'não informada'}
+            </span>
           </div>
         </article>
 
@@ -134,31 +166,18 @@ export function AppAnalyticsView({
           <span className="kpi-icon">🏪</span>
           <div className="kpi-body">
             <span className="kpi-label">Pontos de Apoio</span>
-            <span className="kpi-value">
-              {catalogItems.length || totalActors}
-            </span>
+            <span className="kpi-value">{catalogItems.length}</span>
             <span className="kpi-subtext">atores no catálogo</span>
-          </div>
-        </article>
-
-        <article className="kpi-card">
-          <span className="kpi-icon">📲</span>
-          <div className="kpi-body">
-            <span className="kpi-label">Eventos Medidos</span>
-            <span className="kpi-value">
-              {liveEventsTotal !== null ? liveEventsTotal : 'Ativos'}
-            </span>
-            <span className="kpi-subtext">métricas LGPD consentidas</span>
           </div>
         </article>
       </div>
 
       <div className="analytics-main-grid">
         <section className="routes-selector-panel">
-          <h3>Selecione a Rota para Análise</h3>
+          <h3>Selecione a Rota</h3>
           <p className="panel-hint">
-            Escolha uma rota para inspecionar os pontos de apoio e contatos mais
-            acessados.
+            Escolha uma rota para consultar métricas consentidas e seu catálogo
+            publicado.
           </p>
           <ul className="route-list">
             {routes.map((route) => {
@@ -172,16 +191,12 @@ export function AppAnalyticsView({
                   >
                     <div className="route-item-header">
                       <strong>{route.title}</strong>
-                      <span className="route-status-tag">
-                        {route.editorial_status || 'Publicada'}
-                      </span>
+                      <span className="route-status-tag">Publicada</span>
                     </div>
                     <p className="route-item-details">
-                      {route.distance_km
-                        ? `${route.distance_km} km`
-                        : 'Extensão N/I'}{' '}
-                      • {route.stages_count || 0} estágio(s) •{' '}
-                      {route.actors_count || 0} ponto(s)
+                      {route.durationMinutes
+                        ? `${route.durationMinutes} minutos estimados`
+                        : 'Duração não informada'}
                     </p>
                   </button>
                 </li>
@@ -193,17 +208,39 @@ export function AppAnalyticsView({
         <section className="poi-analytics-panel">
           <div className="panel-header">
             <div>
-              <h3>Pontos de Apoio e Interação no App</h3>
+              <h3>Catálogo Publicado da Rota</h3>
               <p className="panel-hint">
                 Rota selecionada: <strong>{selectedRoute?.title}</strong>
               </p>
             </div>
-            <div className="panel-actions-group">
-              <Button onClick={() => onOpenEditorModal(null)} type="button">
-                + Adicionar Ponto Manual
-              </Button>
-            </div>
+            {onOpenCreateModal && (
+              <button
+                className="poi-create-button"
+                onClick={onOpenCreateModal}
+                type="button"
+              >
+                ➕ Adicionar Ponto Manual
+              </button>
+            )}
           </div>
+
+          <section aria-label="Ranking de contatos por ponto de apoio">
+            <h4>Ranking de contatos</h4>
+            {operational?.ranking.length ? (
+              <ol className="poi-analytics-list">
+                {operational.ranking.map((item) => (
+                  <li className="poi-card" key={item.support_point_id}>
+                    <strong>{item.support_point_name}</strong>
+                    <span>{item.contacts} contatos</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="panel-hint">
+                Dados indisponíveis ou suprimidos para preservar a privacidade.
+              </p>
+            )}
+          </section>
 
           {catalogItems.length ? (
             <ul className="poi-analytics-list">
@@ -248,7 +285,7 @@ export function AppAnalyticsView({
 
                     <div className="poi-metric-bar-container">
                       <div className="poi-metric-label">
-                        <span>Prontidão de Exibição</span>
+                        <span>Dados públicos disponíveis</span>
                         <strong>{completenessScore}%</strong>
                       </div>
                       <div className="poi-progress-track">

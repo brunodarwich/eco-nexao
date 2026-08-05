@@ -46,6 +46,15 @@ try {
   ])
   run(pnpmExecutable, [
     ...pnpmPrefix,
+    'exec',
+    'prettier',
+    '--config',
+    resolve(root, '.prettierrc.json'),
+    '--write',
+    generatedSchema,
+  ])
+  run(pnpmExecutable, [
+    ...pnpmPrefix,
     '--filter',
     '@econexao/contracts',
     'exec',

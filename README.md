@@ -10,6 +10,10 @@ não valores fixos da plataforma.
 ## Começar
 
 Pré-requisitos: Node.js 20.9+, pnpm 10, `uv`, GDAL/GEOS e acesso ao Supabase/PostGIS do ambiente.
+O desenvolvimento e os testes integrados não usam PostgreSQL/PostGIS local em Docker. A API
+Django acessa exclusivamente o Supabase configurado por `DATABASE_URL`; frontends nunca recebem a
+conexão SQL. Testes que gravam fixtures exigem autorização explícita do projeto Supabase alvo e
+devem limpar os dados fictícios mesmo quando falharem.
 
 ```powershell
 pnpm install

@@ -72,7 +72,7 @@ Reservas e pagamentos, avaliações públicas, conta obrigatória, aplicativos n
 **História:** Como visitante, quero encontrar empresas, prestadores, comunidades e pontos de apoio relacionados à rota.
 
 1. QUANDO a aba Catálogo abrir O SISTEMA DEVE listar apenas atores publicados e vinculados à rota.
-2. QUANDO um ator for aberto O SISTEMA DEVE mostrar contatos autorizados, atualização e contexto na rota.
+2. QUANDO um ator for aberto O SISTEMA DEVE mostrar contatos públicos verificados, atualização e contexto na rota.
 3. QUANDO o visitante acionar WhatsApp, ligação, site ou “como chegar” O SISTEMA DEVE abrir o destino externo correto.
 4. QUANDO houver consentimento de analytics O SISTEMA DEVE registrar intenção de contato, nunca venda confirmada.
 
@@ -89,7 +89,8 @@ Reservas e pagamentos, avaliações públicas, conta obrigatória, aplicativos n
 
 **História:** Como usuário, quero escolher tema claro ou escuro para usar a ECOnexão com conforto e reconhecer sua identidade.
 
-1. QUANDO não houver escolha salva O SISTEMA DEVE respeitar `prefers-color-scheme`, mantendo o tema claro como linguagem visual principal.
+1. QUANDO não houver escolha salva O SISTEMA DEVE iniciar no tema claro, mantendo a escolha
+   explícita do usuário por claro ou escuro nas visitas seguintes.
 2. QUANDO o usuário trocar o tema O SISTEMA DEVE aplicar a mudança imediatamente e persistir a preferência local.
 3. EM AMBOS os temas O SISTEMA DEVE usar tokens semânticos derivados da paleta oficial e manter contraste WCAG 2.2 AA.
 4. QUANDO o tema mudar O SISTEMA DEVE atualizar controles, mapas, gráficos e `theme-color` sem depender apenas de cor para comunicar estado.

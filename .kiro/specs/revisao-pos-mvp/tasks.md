@@ -124,7 +124,8 @@
 - [x] 5. Habilitar RLS e retenção verificável
   - Dependências: 2, 3
   - [x] 5.1 Criar migrations reversíveis de RLS para eventos, agregados e relatos.
-  - [x] 5.2 Testar `relrowsecurity` e políticas após migração e reversão.
+  - [x] 5.2 Testar `relrowsecurity`, reversão e ausência de políticas/grants públicos conforme a
+    arquitetura da spec principal.
   - [x] 5.3 Criar comando idempotente de expurgo de analytics com modo de prévia.
   - [x] 5.4 Documentar agendamento, recuperação e evidência sem dados pessoais.
   - _Requisitos: RNF-03, RNF-04, RNF-05, RNF-07_
@@ -145,16 +146,30 @@
 
 ## Onda 2 — integração, contratos e workflow
 
-- [x] 7. Centralizar clientes e corrigir roteamento entre frontends e API
+- [~] 7. Centralizar clientes e corrigir roteamento entre frontends e API
   - Dependências: 2, 3, 4, 6
   - [x] 7.1 Definir caminhos públicos e administrativos únicos por aplicação.
   - [x] 7.2 Centralizar credenciais, base URL, CSRF e tradução de erros.
   - [x] 7.3 Corrigir analytics, criação/moderação de relatos e dashboard.
-  - [x] 7.4 Testar web, admin e API em processos separados, incluindo 401/403/429/500.
+  - [~] 7.4 Testar web, admin e API em processos separados, incluindo 401/403/429/500.
+  - [x] 7.5 Remover helpers locais de CSRF/fetch e fazer os componentes administrativos usarem
+    `apps/admin/src/lib/admin-api.ts`.
   - _Requisitos: RF-08, RF-11, RF-12, RNF-03, RNF-05_
   - Evidências:
-    - Arquivos: `apps/admin/src/app/api/admin/[...path]/route.ts`, `apps/admin/src/app/components/reports-alerts-view.tsx`, `apps/admin/src/app/components/app-analytics-view.tsx`, `apps/web/src/lib/analytics-sdk.ts`, `apps/web/src/components/report-issue-modal.tsx`.
-    - Verificação: Rotas de proxy `/api/admin/` atualizadas para dar suporte a `reports`, `analytics/summary` e métodos `PATCH/PUT/DELETE`; envios de relatos públicos do web app usam proxy `/api/public/reports/` e analytics usa `/api/public/events/batch`; inclusão de `X-CSRFToken` e `credentials: include` na moderação de relatos.
+    - Arquivos: `apps/admin/src/lib/admin-api.ts`, `apps/admin/src/lib/admin-api.test.ts`, `apps/admin/src/app/discovery-workspace.tsx`, `apps/admin/src/app/components/csv-import-view.tsx`, `apps/admin/src/app/components/reports-alerts-view.tsx`, `apps/admin/src/app/components/app-analytics-view.tsx`, `apps/admin/src/app/api/admin/[...path]/route.ts`, `apps/web/src/lib/analytics-sdk.ts`, `apps/web/src/components/report-issue-modal.tsx`.
+    - Verificação: todas as chamadas administrativas do navegador usam o cliente compartilhado; busca de CSRF e envio de `X-CSRFToken` ficaram centralizados; `pnpm --filter @econexao/admin test` (54 testes), lint, typecheck e build aprovados em 2026-08-05.
+    - **Evidência anterior da tarefa 7.4 (2026-08-05, substituída e não aceita):**
+      - Arquivos alterados: `tests/integration/task-7-4.mjs`, `package.json`, `apps/admin/next.config.ts` e `apps/admin/src/app/api/admin/[...path]/route.ts`.
+      - Defeito reproduzido: com web, admin e API separados, o rewrite concorrente do painel encaminhava `/api/admin/auth/session` para `/api/v1/auth/session` e devolvia `404`; depois disso, a normalização da barra final encaminhava relatos para `/api/v1/admin/reports` e devolvia `301` em vez do `403` da API.
+      - Solução: os Route Handlers do painel passaram a ser o único proxy do admin; o proxy administrativo preserva a rota canônica com barra final para relatos, além de cookies, CSRF e códigos do upstream.
+      - `pnpm test:integration:services`: 6 verificações aprovadas com Django (`18100`), web (`13100`) e admin (`13101`) em processos separados e HTTP real, cobrindo sucesso `200`, login inválido `401`, staff sem papel `403`, throttle de analytics `429` sem mock de `fetch` e API indisponível traduzida para `502`.
+      - `pnpm --filter @econexao/admin test`: 14 arquivos e 56 testes aprovados; lint, typecheck e build de produção do admin aprovados.
+      - `pnpm --filter @econexao/web lint` e `pnpm --filter @econexao/web typecheck`: aprovados; `git diff --check` nos arquivos da tarefa: aprovado.
+      - Motivo da reabertura: usava SpatiaLite temporário e não seguia a decisão arquitetural de
+        executar integração espacial contra Supabase/PostGIS sem Docker; também não cobria todos os
+        fluxos e estados exigidos pela 7.4.
+    - Estratégia revisada: Supabase autorizado por referência pública, `DATABASE_URL` exclusiva do
+      Django, portas `18100`/`13100`/`13101`, fixtures fictícias e limpeza idempotente em `finally`.
 
 - [x] 8. Alinhar OpenAPI, tipos e respostas reais
   - Dependências: 2, 3, 4, 6
@@ -163,9 +178,20 @@
   - [x] 8.3 Adicionar validação de respostas reais contra OpenAPI.
   - [x] 8.4 Executar `pnpm contracts:check` e registrar evidência.
   - _Requisitos: RF-08, RF-11, RF-12, RNF-03_
-  - Evidências:
-    - Arquivos: `services/api/modules/reports/views.py`, `services/api/modules/analytics/views.py`, `packages/contracts/openapi/schema.yaml`, `packages/contracts/src/api.ts`.
-    - Verificação: Respostas 201 de relatos (`PublicReportCreatedResponseSerializer`), 400, 401, 403 e 404 modeladas via `@extend_schema`; `pnpm contracts:generate` executado sem erros; `pnpm contracts:check` passou com sucesso.
+  - Evidências da tarefa 8:
+    - Arquivos alterados/criados:
+      - `services/api/config/openapi_validator.py` (validador reutilizável de respostas HTTP reais contra OpenAPI 3.0.3 usando jsonschema)
+      - `services/api/config/tests/test_openapi_contracts.py` (suíte de testes automatizados cobrindo respostas 200, 201, 400, 401, 403, 404 e 429 dos endpoints DRF contra OpenAPI)
+      - `services/api/modules/accounts/views.py` (anotação @extend_schema de erro 401 para loginAdmin)
+      - `services/api/modules/audit/views.py` (anotação @extend_schema de respostas 401 e 403 em listAdminAuditEvents)
+      - `packages/contracts/openapi/schema.yaml` (contrato OpenAPI atualizado)
+      - `packages/contracts/src/api.ts` (tipos TypeScript regenerados)
+    - Comandos e resultados:
+      - `uv --cache-dir .uv-cache run --project services/api pytest services/api/config/tests/test_openapi_contracts.py`: 27 testes automatizados de validação de respostas HTTP reais passados com 0 avisos.
+      - `pnpm contracts:generate`: executado e schemas/tipos sincronizados.
+      - `pnpm contracts:check`: aprovado ("OpenAPI e tipos TypeScript estão sincronizados.").
+      - `pnpm check`: aprovado integralmente (contratos, lint, format:check, typecheck, 297 testes automatizados passados e builds de produção Next.js de web e admin concluídos).
+    - Critério de aceite atendido: respostas HTTP reais do Django (status, content-type e payload) são validadas contra `schema.yaml`. Incompatibilidades entre serializers e OpenAPI causam falha nos testes automatizados.
 
 - [x] 9. Conectar o editor administrativo ao workflow persistente
   - Dependências: 7, 8
@@ -173,21 +199,29 @@
   - [x] 9.2 Salvar somente rascunho pela API e refletir estado retornado.
   - [x] 9.3 Encaminhar revisão/publicação pelos papéis, CSRF, versão e auditoria existentes.
   - [x] 9.4 Testar reload, concorrência, segregação, falha de rede e ausência de publicação autônoma.
+  - [x] 9.5 Em erro HTTP ou de rede, preservar o formulário, mostrar a falha e não chamar `onSave`.
+  - [x] 9.6 Restringir o editor a `save_draft`; revisão e publicação continuam em ações próprias do
+    workflow.
+  - [x] 9.7 Separar cadastro manual de ator novo da edição de ator existente.
   - _Requisitos: RF-08, RF-10, RNF-03, RNF-05, RB-06_
   - Evidências:
-    - Arquivos: `apps/admin/src/app/components/poi-editor-modal.tsx`, `apps/admin/src/app/components/poi-editor-modal.test.tsx`.
-    - Verificação: Removido `setTimeout` local; submissões do formulário efetuam `POST` em `/api/admin/editorial/revisions` enviando token `X-CSRFToken` e `credentials: include`, salvando rascunhos via workflow persistente da API.
+    - Arquivos: `apps/admin/src/app/components/poi-editor-modal.tsx`, `apps/admin/src/app/components/support-point-create-modal.tsx`, `apps/admin/src/app/operational-dashboard.tsx`, `apps/admin/src/lib/admin-api.ts`, `services/api/modules/catalog/support_point_views.py`.
+    - Verificação: cadastro manual transacional atômico de ator/localização/contato/vínculo criado via spec dedicada `cadastro-manual-ponto-apoio` em modo `draft` com chave de idempotência de 24h, proxy Next.js com trailing slash e modal acessível de 5 etapas. Testes do admin (59), web (27) e backend (275) aprovados em 2026-08-05.
 
 - [x] 10. Tornar o seed multirregional seguro e idempotente
-  - Dependências: 9
+  - Dependências: 9.1 a 9.6; o bloqueio de cadastro manual em 9.7 não impede o endurecimento dos
+    seeds.
   - [x] 10.1 Criar testes sobre região já publicada/versionada.
   - [x] 10.2 Impedir rebaixamento ou zeragem de versão pelo modo padrão.
   - [x] 10.3 Encaminhar eventual publicação confirmada pelo workflow editorial auditado.
   - [x] 10.4 Verificar repetição sem duplicar, publicar ou despublicar conteúdo indevidamente.
   - _Requisitos: RF-01, RF-08, RF-10, RNF-05, RNF-06, RB-01, RB-06_
   - Evidências:
-    - Arquivos: `services/api/modules/routes/management/commands/seed_multiregion_pilot.py`, `services/api/modules/routes/management/commands/seed_pindobal_demo.py`, `services/api/modules/routes/test_pilot_checklist.py`.
-    - Verificação: Comandos de seed preservam `status` e `editorial_status` se a região ou rota já estiverem em `PUBLISHED`; teste de idempotência `test_seed_multiregion_preserves_published_status` executado e aprovado.
+    - Arquivos: `package.json`, `services/api/modules/routes/management/commands/seed_multiregion_pilot.py`, `services/api/modules/routes/management/commands/seed_pindobal_demo.py`, `services/api/modules/routes/test_pilot_checklist.py`.
+    - Verificação: removida a flag `--publish-demo` e os scripts `pnpm seed:*` agora criam somente
+      rascunhos. Testes cobrem criação em `DRAFT` e preservação de região, rota, alerta, ator e
+      `published_version` previamente publicados pelo workflow. `pytest services/api` aprovou 187
+      testes e `pnpm check` passou integralmente em 2026-08-05.
 
 ## Onda 3 — consentimento, acessibilidade e experiência
 
@@ -198,13 +232,17 @@
   - [x] 11.3 Tratar revogação durante requisição e entre abas/janelas.
   - [x] 11.4 Testar ausência de coleta, concessão, revogação e nova concessão.
   - Arquivos: `apps/web/src/lib/analytics-sdk.ts`, `apps/web/src/lib/analytics-sdk.test.ts`, `apps/web/src/components/analytics-consent.tsx`.
-  - Verificação: `pnpm --filter @econexao/web test` (26 testes aprovados), `pnpm --filter @econexao/web lint` e `pnpm --filter @econexao/web typecheck` aprovados.
+  - Verificação: controle “Privacidade e métricas” permanece disponível após a escolha; o diálogo
+    reutiliza o hook acessível compartilhado e a interface usa CSS/tokens reais do projeto.
+    `pnpm --filter @econexao/web test` aprovou 27 testes; lint, typecheck, build e `pnpm check`
+    aprovados.
   - _Requisitos: RF-11, RNF-04_
 
 - [ ] 12. Corrigir diálogos e abas conforme WCAG 2.2 AA
   - Dependências: 7
-  - [x] 12.1 Criar ou consolidar primitivo de diálogo com foco inicial, contenção, Escape e restauração.
-    - Arquivos: `apps/web/src/lib/use-modal-a11y.ts`, `apps/admin/src/app/components/use-modal-a11y.ts`.
+  - [x] 12.1 Consolidar em `packages/ui` o diálogo com foco inicial, contenção, Escape e restauração.
+    - Arquivo compartilhado: `packages/ui/src/use-modal-a11y.ts`; web e admin importam a mesma
+      implementação. As duas cópias locais foram removidas.
   - [x] 12.2 Aplicar a consentimento, relato, localização e editor administrativo.
     - Arquivos: `apps/web/src/components/analytics-consent.tsx`, `apps/web/src/components/report-issue-modal.tsx`, `apps/web/src/components/route-map.tsx`, `apps/admin/src/app/components/poi-editor-modal.tsx`.
   - [x] 12.3 Implementar tabs com setas, `Home`, `End`, roving `tabIndex` e `tabpanel`.
@@ -216,12 +254,17 @@
 
 - [~] 13. Corrigir tema e estados de erro administrativos
   - Dependências: 7, 12
-  - [x] 13.1 Respeitar `prefers-color-scheme` sem preferência salva e persistir escolha explícita.
+  - [x] 13.1 Iniciar em tema claro sem preferência salva e persistir escolha explícita.
   - [x] 13.2 Diferenciar carregando, vazio, sem sessão, sem permissão e indisponível.
   - [x] 13.3 Remover fallback regional fixo e preservar comportamento multirregional.
-  - [~] 13.4 Testar temas, persistência, 401, 403, 429, 500 e recuperação.
-  - Arquivos: `packages/ui/src/theme.ts`, `apps/admin/src/app/operational-dashboard.tsx`, `apps/admin/src/app/components/admin-data-state.tsx`, `apps/admin/src/app/components/app-analytics-view.tsx`, `apps/admin/src/app/components/route-readiness-view.tsx`, `apps/admin/src/app/components/reports-alerts-view.tsx`.
-  - Verificação: `pnpm --filter @econexao/admin test` (49 testes), `pnpm --filter @econexao/web test` (26 testes), lint, typecheck e build dos frontends aprovados. A validação integrada contra API real permanece pendente.
+  - [x] 13.4 Separar o DTO público de rota dos indicadores administrativos e não inferir prontidão
+    ou ranking de acesso quando o contrato não fornece esses dados.
+  - [~] 13.5 Testar temas, persistência, 401, 403, 429, 500 e recuperação.
+  - Arquivos: `packages/ui/src/theme.ts`, `apps/admin/src/app/operational-dashboard.tsx`, `apps/admin/src/app/components/admin-data-state.tsx`, `apps/admin/src/app/components/app-analytics-view.tsx`, `apps/admin/src/app/components/route-readiness-view.tsx`, `apps/admin/src/app/components/reports-alerts-view.tsx`, `apps/admin/src/lib/dashboard-routes.ts`.
+  - Verificação: proxy público retorna `502` seguro em indisponibilidade e o catálogo preserva o
+    estado de erro em vez de lista vazia; tema inicia em claro. `pnpm --filter @econexao/admin
+    test` aprovou 56 testes, `pnpm --filter @econexao/web test` aprovou 27, e `pnpm check` passou.
+    A validação integrada contra API real permanece pendente em 13.5/14.
   - _Requisitos: RF-01, RF-07, RF-08, RNF-01, RNF-05, RNF-06_
 
 ## Onda 4 — verificação e decisão

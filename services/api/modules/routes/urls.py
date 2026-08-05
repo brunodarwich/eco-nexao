@@ -1,8 +1,9 @@
 from django.urls import path
 
-from .views import RegionRouteListView, RouteCatalogListView, RouteDetailView
+from .views import RegionRouteListView, RouteCatalogListView, RouteDetailView, admin_route_readiness
 
 urlpatterns = [
+    path("admin/routes/readiness", admin_route_readiness, name="admin-route-readiness"),
     path(
         "regions/<slug:region_slug>/routes",
         RegionRouteListView.as_view(),

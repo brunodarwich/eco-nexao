@@ -38,13 +38,18 @@ flowchart LR
 - **Roteamento:** adotar um único contrato de proxy por aplicação. Web encaminha endpoints públicos;
   admin encaminha endpoints administrativos e bootstrap de autenticação. URLs diretas `/api/v1`
   não ficam espalhadas nos componentes.
-- **CSRF:** toda mutação administrativa passa pelo cliente autenticado compartilhado, que obtém e
-  envia `X-CSRFToken` e preserva cookies.
+- **Cliente administrativo:** `apps/admin/src/lib/admin-api.ts` será o único ponto para requisições
+  administrativas no navegador. O módulo obtém e envia `X-CSRFToken`, preserva cookies, interpreta
+  JSON e converte respostas `401`, `403`, `429` e `5xx` em erros estáveis para a interface.
+- **Falha de mutação:** respostas não exitosas e falhas de rede nunca produzem objetos locais que
+  aparentem persistência. O formulário permanece aberto, conserva os campos e mostra erro com nova
+  tentativa possível.
 - **Editor:** remover qualquer aparência de publicação local. Salvar deve chamar o workflow real e
   apresentar o estado retornado pela API.
-- **Acessibilidade:** criar um primitivo reutilizável de diálogo acessível e implementar tabs pelo
-  padrão WAI-ARIA, sem testes baseados apenas em busca textual.
-- **Tema:** preferência persistida prevalece; na ausência dela, aplicar o esquema do sistema.
+- **Acessibilidade:** manter um único hook `useModalA11y` em `packages/ui`, reutilizado por web e
+  admin, e implementar tabs pelo padrão WAI-ARIA, sem testes baseados apenas em busca textual.
+- **Tema:** preferência persistida prevalece; na ausência dela, iniciar em claro conforme
+  `.kiro/steering/design-system.md`.
 - **Seed:** por padrão, criar/atualizar rascunhos sem degradar registros existentes. Publicação só
   poderá ocorrer pelo serviço editorial com confirmação explícita e auditoria.
 - **Go/no-go:** agentes podem preparar evidências, mas não assinar aceite humano nem declarar GO.
@@ -66,10 +71,13 @@ flowchart LR
 
 ### Web e painel
 
-- Cliente de API centraliza base URL, proxy, credenciais, CSRF e tratamento de erro.
+- `apps/admin/src/lib/admin-api.ts` centraliza proxy, credenciais, CSRF e tratamento de erro das
+  chamadas administrativas; componentes mantêm apenas estado e mensagens do fluxo de tela.
 - Consentimento permanece acessível após a escolha e controla a fila de analytics.
-- Diálogos compartilham comportamento de foco e teclado.
+- Diálogos de web e admin importam o mesmo hook de foco e teclado de `packages/ui`.
 - Painel diferencia vazio, carregando, não autorizado e indisponível.
+- O editor de pontos só atualiza a prévia após resposta bem-sucedida do workflow; `save_draft` não
+  oferece status de publicação direta.
 
 ## Modelo de dados e migrations
 
@@ -77,7 +85,9 @@ flowchart LR
 - Se uma FK polimórfica não for adequada, a validação do alvo será centralizada em serviço de
   domínio e protegida por constraints possíveis; não haverá confiança exclusiva em slugs enviados.
 - Novas migrations devem ser reversíveis e não podem apagar relatos/eventos existentes.
-- A aplicação de RLS deve incluir políticas mínimas compatíveis com o acesso exclusivo pela API.
+- A aplicação de RLS mantém a decisão da spec principal: RLS habilitado e reversível, sem políticas
+  ou grants públicos para `anon` e `authenticated`; a conexão SQL exclusiva da API continua sendo
+  a fronteira de acesso.
 - O expurgo de analytics atua por `occurred_at/received_at` conforme a política documentada e
   registra somente contagens e IDs técnicos seguros.
 
@@ -111,12 +121,17 @@ flowchart LR
 
 1. Escrever teste que falha reproduzindo cada achado antes da correção.
 2. Executar testes focados após cada tarefa.
-3. Validar migrations em banco de teste, inclusive reversão e RLS.
+3. Validar migrations no Supabase/PostGIS explicitamente autorizado, inclusive reversão e RLS;
+   não provisionar PostgreSQL/PostGIS local em Docker e nunca usar produção.
 4. Validar OpenAPI contra respostas reais, não apenas sincronização de arquivos gerados.
 5. Executar integração com web, admin e API em processos separados.
 6. Executar concorrência de agregação e atomicidade de moderação.
 7. Executar testes de componentes com teclado/foco e E2E dos fluxos críticos.
 8. Ao final, executar `pnpm check` e `pnpm test:e2e`.
+
+Na integração entre serviços, somente o processo Django recebe `DATABASE_URL`. O runner confirma a
+referência pública do projeto Supabase antes de gravar, usa fixtures fictícias identificáveis e
+executa limpeza idempotente em `finally`, inclusive após falha ou interrupção dos processos.
 
 ## Migração e implantação
 
@@ -145,6 +160,6 @@ flowchart LR
 | Integração frontend/API | RF-08, RF-11, RF-12 | web, admin, API | E2E com serviços separados |
 | Workflow editorial real | RF-08, RF-10, RB-06 | admin, publishing | reload preserva rascunho/versionamento |
 | Consentimento revogável | RF-11, RNF-04 | web analytics | revogação interrompe e limpa fila |
-| WCAG e tema | RF-07, RNF-01 | ui, web, admin | teclado, foco, tema do sistema |
+| WCAG e tema | RF-07, RNF-01 | ui, web, admin | teclado, foco, claro inicial e escolha persistida |
 | Multirregional e seed seguro | RF-01, RNF-06, RB-01/06 | seed, publishing | repetição não rebaixa/publica diretamente |
 | Governança | RNF-02/04/05/08 | spec e relatório | NO-GO até portões e aceite humano |

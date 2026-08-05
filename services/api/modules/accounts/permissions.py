@@ -15,6 +15,7 @@ class AdminRole(StrEnum):
 
 class AdminAction(StrEnum):
     EDIT_CONTENT = "edit_content"
+    CREATE_SUPPORT_POINT = "create_support_point"
     IMPORT_CSV = "import_csv"
     APPROVE = "approve"
     PUBLISH = "publish"
@@ -34,6 +35,7 @@ ROLE_ACTIONS: dict[AdminRole, frozenset[AdminAction]] = {
     AdminRole.EDITOR: frozenset(
         {
             AdminAction.EDIT_CONTENT,
+            AdminAction.CREATE_SUPPORT_POINT,
             AdminAction.IMPORT_CSV,
             AdminAction.VIEW_AGGREGATES,
             AdminAction.DISCOVER_EXTERNAL,
