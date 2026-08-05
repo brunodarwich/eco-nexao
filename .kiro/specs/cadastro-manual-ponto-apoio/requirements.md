@@ -1,8 +1,8 @@
 # Requirements — Cadastro manual administrativo de ponto de apoio
 
-> Status: aprovado para implementação  
-> Responsável pelo produto: Bruno  
-> Atualizado em: 2026-08-05  
+> Status: aprovado para implementação
+> Responsável pelo produto: Bruno
+> Atualizado em: 2026-08-05
 > Desbloqueia após aprovação e implementação: `revisao-pos-mvp` 9.7 e
 > `painel-operacional` 8.3
 

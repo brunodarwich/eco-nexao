@@ -1,6 +1,6 @@
 # Design — Cadastro manual administrativo de ponto de apoio
 
-> Status: aprovado para implementação  
+> Status: aprovado para implementação
 > Depende de: `requirements.md` aprovado
 
 ## Visão geral

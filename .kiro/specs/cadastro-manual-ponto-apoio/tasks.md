@@ -1,6 +1,6 @@
 # Tasks — Cadastro manual administrativo de ponto de apoio
 
-> Status: em implementação; Tasks 1 a 3 concluídas e Task 4 em andamento  
+> Status: em implementação; Tasks 1 a 3 concluídas e Task 4 em andamento
 > Depende de: `requirements.md` e `design.md` aprovados
 
 ## Legenda

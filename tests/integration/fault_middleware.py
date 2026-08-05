@@ -14,4 +14,3 @@ class IntegrationFaultMiddleware:
                 status=500,
             )
         return self.get_response(request)
-
