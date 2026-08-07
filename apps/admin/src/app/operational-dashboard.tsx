@@ -90,6 +90,7 @@ export function OperationalDashboard() {
   const [dashboardSummary, setDashboardSummary] =
     useState<DashboardSummaryApi | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(true)
+  const [summaryRequestKey, setSummaryRequestKey] = useState(0)
   const [summaryError, setSummaryError] = useState<AdminRequestError | null>(
     null,
   )
@@ -247,7 +248,7 @@ export function OperationalDashboard() {
     return () => {
       active = false
     }
-  }, [selectedRegionSlug])
+  }, [selectedRegionSlug, summaryRequestKey])
 
   function handleOpenEditorModal(itemToEdit: CatalogItemApi) {
     setPoiToEdit(itemToEdit)
@@ -291,6 +292,8 @@ export function OperationalDashboard() {
             value={selectedRegionSlug}
             onChange={(e) => {
               setIsLoading(true)
+              setSummaryLoading(true)
+              setSummaryError(null)
               setSelectedRegionSlug(e.target.value)
             }}
           >
@@ -332,22 +335,32 @@ export function OperationalDashboard() {
         />
       ) : null}
 
-      <HeroFocus
-        activeRouteName={selectedRouteName}
-        alertsCount={
-          summaryLoading || Boolean(summaryError) || !dashboardSummary
-            ? null
-            : dashboardSummary.active_alerts_count
-        }
-        onNavigateTab={setActiveTab}
-        pendingRevisionsCount={
-          summaryLoading || Boolean(summaryError) || !dashboardSummary
-            ? null
-            : dashboardSummary.pending_revisions_count
-        }
-        regionName={selectedRegionName}
-        routeCount={routes.length}
-      />
+      {summaryError ? (
+        <AdminDataState
+          error={summaryError}
+          onRetry={() => {
+            setSummaryLoading(true)
+            setSummaryRequestKey((value) => value + 1)
+          }}
+        />
+      ) : (
+        <HeroFocus
+          activeRouteName={selectedRouteName}
+          alertsCount={
+            summaryLoading || !dashboardSummary
+              ? null
+              : dashboardSummary.active_alerts_count
+          }
+          onNavigateTab={setActiveTab}
+          pendingRevisionsCount={
+            summaryLoading || !dashboardSummary
+              ? null
+              : dashboardSummary.pending_revisions_count
+          }
+          regionName={selectedRegionName}
+          routeCount={routes.length}
+        />
+      )}
 
       <nav
         aria-label="Navegação do Painel Operacional"

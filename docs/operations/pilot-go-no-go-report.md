@@ -1,18 +1,18 @@
-# Relatório de Go/No-Go do Piloto, Riscos Residuais e Evidências — V7
+# Relatório de Go/No-Go do Piloto, Riscos Residuais e Evidências — V8
 
 **Projeto:** Plataforma ECOnexão (MVP multirregional — piloto Pindobal/Santarém-Alter do Chão)
-**Data da avaliação:** 5 de agosto de 2026
+**Data da avaliação:** 6 de agosto de 2026
 **Responsável por produto e tecnologia:** Bruno (interino)
-**Decisão integrada:** **NO-GO — correções e verificação ainda abertas**
+**Decisão integrada:** **NO-GO — V1 bloqueada e portões externos abertos**
 
 ## 1. Resumo executivo e separação por ambiente
 
 A revisão pós-implementação identificou achados de segurança, integridade transacional,
-privacidade, integração frontend/API, acessibilidade e governança. Os seeds, a revogação de
-analytics, o tema inicial e os estados de erro foram corrigidos e a suíte integrada automatizada
-passa. A integração real entre serviços, a validação de respostas contra OpenAPI, a validação
-manual de acessibilidade, os portões externos `0H` e o aceite humano continuam abertos. A decisão
-permanece **NO-GO**.
+privacidade, integração frontend/API, acessibilidade e governança. A regressão focada de backend e
+componentes passa. A execução V1 encontrou e corrigiu falhas no teste de persistência de tema e no
+tratamento administrativo de erros/retry; a suíte completa agora passa. A integração real entre
+serviços, porém, não iniciou sem a referência explícita do Supabase autorizado. Os portões externos
+`0H` e o aceite humano também continuam abertos. A decisão permanece **NO-GO**.
 
 1. **Desenvolvimento local:** permitido para implementação e verificação orientadas pelas specs.
 2. **Homologação/staging:** **NO-GO** até conclusão verificada de `revisao-pos-mvp`, fechamento dos
@@ -23,24 +23,17 @@ permanece **NO-GO**.
 
 ### A. Spec `revisao-pos-mvp`
 
-| Tarefas     | Estado em 05/08/2026                           | Observação                                                                                                                |
-| ----------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| T-01 a T-06 | concluídas na spec                             | confirmadas pela suíte automatizada atual                                                                                  |
-| T-07 e T-08 | parcialmente concluídas                        | clientes/schema corrigidos; integração com serviços separados e validação de respostas reais contra OpenAPI estão abertas |
-| T-09        | parcialmente concluída, com bloqueio explícito | edição de ator existente usa workflow real; cadastro manual de ator novo não possui contrato/endpoint e continua pelo CSV |
-| T-10 e T-11 | concluídas na spec                             | aguardam confirmação conjunta na regressão integrada                                                                      |
-| T-12        | aberta                                         | hook modal unificado; interação real de teclado e verificação manual ainda faltam                                         |
-| T-13        | em andamento                                   | estados principais implementados; testes integrados de tema e erros ainda faltam                                          |
-| T-14        | pendente                                       | `pnpm check` passou; migrations em ambiente integrado, acessibilidade e E2E com serviços separados continuam abertos      |
-| T-15        | pendente                                       | rastreabilidade final, riscos residuais, rollback e preparação do aceite humano                                           |
+| Tarefas     | Estado em 06/08/2026 | Observação                                                                                           |
+| ----------- | -------------------- | ---------------------------------------------------------------------------------------------------- |
+| T-01 a T-06 | concluídas na spec   | confirmadas pela regressão backend focada de V1                                                      |
+| T-07        | em andamento         | cliente e proxy corrigidos; 7.4 aguarda reexecução no Supabase/PostGIS explicitamente autorizado     |
+| T-08 a T-12 | concluídas na spec   | contratos, workflow, seed, consentimento e acessibilidade possuem evidências nas respectivas tarefas |
+| T-13 e T-14 | concluídas na spec   | falhas reproduzidas pela V1 foram corrigidas; `pnpm check` e 40 E2E aplicáveis passam                |
+| T-15        | pendente             | rastreabilidade final, riscos residuais, rollback e preparação do aceite humano                      |
 
-O painel operacional possui três lacunas de contrato explicitadas na spec. O backend atual só cria
-revisão para ator existente; o botão de criação manual foi retirado até existir uma operação
-transacional para ator, localização, contato e vínculo de rota. A API pública de rotas não fornece
-estado editorial nem dimensões de prontidão, e o resumo de analytics não identifica pontos de
-apoio. Por isso a interface não calcula mais percentuais com campos ausentes nem apresenta
-completude cadastral como ranking de acesso. Novos pontos continuam entrando como rascunho pelo
-CSV; prontidão e ranking permanecem indisponíveis até terem contratos administrativos auditáveis.
+O cadastro manual de ponto de apoio passou a usar operação transacional e cria somente rascunho.
+A interface continua sem inferir prontidão ou ranking a partir de campos públicos ausentes; esses
+indicadores dependem dos contratos administrativos auditáveis.
 
 ### B. Portões externos de homologação (`0H`)
 
@@ -53,16 +46,45 @@ CSV; prontidão e ranking permanecem indisponíveis até terem contratos adminis
 
 ## 3. Matriz de verificação
 
-| Etapa | Descrição                                             | Estado   | Observação                                                    |
-| ----- | ----------------------------------------------------- | -------- | ------------------------------------------------------------- |
-| V1    | rastreabilidade e regressões por achado               | pendente | exige execução integrada e evidência final                    |
-| V2    | autorização por papel, ação, objeto e região          | pendente | testes focados existem; falta validação integrada             |
-| V3    | privacidade, throttling, RLS, retenção e concorrência | pendente | suíte Django passa; falta ensaio integrado de migrations/RLS |
-| V4    | contratos e integração real web/admin/API             | pendente | contratos sincronizados; serviços separados ainda pendentes  |
-| V5    | teclado, foco, tema, zoom e estados de erro           | pendente | interação manual/E2E ainda aberta                             |
-| V6    | riscos residuais, rollback e decisão humana           | pendente | agentes não assinam GO                                        |
+| Etapa | Descrição                                             | Estado    | Observação                                                                                                                  |
+| ----- | ----------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- |
+| V1    | rastreabilidade e regressões por achado               | bloqueada | matriz completa registrada em `revisao-pos-mvp/tasks.md`; falta reexecutar a integração real no Supabase/PostGIS autorizado |
+| V2    | autorização por papel, ação, objeto e região          | pendente  | testes focados existem; falta validação integrada                                                                           |
+| V3    | privacidade, throttling, RLS, retenção e concorrência | pendente  | suíte Django passa; falta ensaio integrado de migrations/RLS                                                                |
+| V4    | contratos e integração real web/admin/API             | pendente  | contratos sincronizados; serviços separados ainda pendentes                                                                 |
+| V5    | teclado, foco, tema, zoom e estados de erro           | pendente  | evidência E2E de V1 passa; fechamento formal de V5 ainda não executado                                                      |
+| V6    | riscos residuais, rollback e decisão humana           | pendente  | agentes não assinam GO                                                                                                      |
 
 ## 4. Evidências
+
+### Verificação V1 — 06/08/2026
+
+- Matriz achado → requisito → código → teste → resultado registrada em
+  `.kiro/specs/revisao-pos-mvp/tasks.md`, incluindo o mecanismo pelo qual cada teste detecta o
+  comportamento incorreto.
+- Nenhum código de produção foi temporariamente alterado para demonstrar sensibilidade.
+- `pnpm --filter @econexao/web test`: 27/27 aprovados.
+- `pnpm --filter @econexao/admin test`: 65/65 aprovados.
+- Regressão backend focada: 84/84 aprovados, cobrindo relatos, analytics, RLS em migrations,
+  contratos OpenAPI, seed e publicação.
+- `pnpm contracts:check`: aprovado; OpenAPI e tipos TypeScript sincronizados.
+- O primeiro E2E focado reproduziu 10 falhas: comparação inválida de `localStorage` entre origens,
+  ausência de renderização de `summaryError` e retry que não refazia a requisição do resumo.
+- Correções em `operational-dashboard.tsx`, `admin-api.ts`, seu teste unitário e no E2E. O painel
+  agora diferencia `401`, `403`, `429` e `502`, mantém o erro até a recuperação e confirma a
+  segunda requisição; o teste de tema usa nova aba da mesma origem.
+- `pnpm check`: aprovado com contratos, lint, formatação, tipos, 27 testes web, 65 admin, 284
+  backend (1 ignorado) e dois builds.
+- `pnpm test:e2e`: 40 aprovados e 2 ignorados. Os 32 cenários de WCAG e tema/erros passaram em
+  desktop e mobile; os ignorados dependem de conteúdo publicado pela API local.
+- `pnpm test:integration:services`: bloqueado antes de iniciar os serviços porque
+  `TASK_7_4_SUPABASE_PROJECT_REF` não foi fornecida. Nenhuma credencial foi inferida ou lida.
+- Reds históricos preservados: rollback atômico detectou `reviewed` onde deveria permanecer
+  `pending`; integração separada detectou `404`/`301` antes da correção. A segunda execução foi
+  formalmente substituída na tarefa 7.4 por não usar a arquitetura Supabase/PostGIS aprovada.
+- Conclusão: todos os achados foram mapeados a testes e as regressões locais passam, mas o achado de
+  roteamento ainda não possui resultado pós-correção aceito na arquitetura Supabase/PostGIS. V1
+  permanece `[!]` e a decisão permanece **NO-GO**.
 
 ### Verificação atual — 05/08/2026
 
@@ -87,5 +109,5 @@ Agentes e sistemas automatizados podem preparar evidências, mas não podem conv
 GO. Homologação e produção exigem fechamento técnico, análise separada dos portões `0H` e aceite
 humano explícito.
 
-**Estado atual:** **NO-GO — CORREÇÕES EM ANDAMENTO E VERIFICAÇÃO INTEGRADA PENDENTE**
-_Revisado em 05/08/2026._
+**Estado atual:** **NO-GO — V1 BLOQUEADA, VERIFICAÇÕES V2–V6 E PORTÕES 0H ABERTOS**
+_Revisado em 06/08/2026._

@@ -31,6 +31,7 @@ import {
 } from '@/lib/public-api'
 import { RouteMap } from './route-map'
 import { RouteFavoriteButton, RouteLocalActions } from './route-local-actions'
+import { ReportIssueModal } from './report-issue-modal'
 import { trackEvent } from '@/lib/analytics-sdk'
 
 type RouteTab = 'overview' | 'map' | 'catalog'
@@ -602,16 +603,18 @@ function RouteCatalog({
     </section>
   )
 }
-
 export function RouteExperience({
   initialActorSlug,
   regionSlug,
   routeSlug,
-  tab,
+  tab: initialTab,
 }: RouteExperienceProps) {
   const [route, setRoute] = useState<RouteDetail | null>(null)
   const [catalog, setCatalog] = useState<RouteCatalogItem[]>([])
+  const [tab] = useState<RouteTab>(initialTab)
+
   const [failed, setFailed] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -726,6 +729,15 @@ export function RouteExperience({
             Iniciar rota
           </Link>
           <RouteLocalActions route={route} />
+          <Button
+            className="route-report-button"
+            onClick={() => setShowReportModal(true)}
+            type="button"
+            variant="secondary"
+          >
+            <AlertTriangle aria-hidden="true" />
+            Relatar problema
+          </Button>
           <p className="verification-note route-hero__verification">
             Conteúdo atualizado em {formatDate(route.updated_at)}.
           </p>
@@ -749,6 +761,15 @@ export function RouteExperience({
           />
         ) : null}
       </div>
+
+      <ReportIssueModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        regionSlug={regionSlug}
+        targetName={route.public_name}
+        targetSlug={routeSlug}
+        targetType="route"
+      />
     </article>
   )
 }

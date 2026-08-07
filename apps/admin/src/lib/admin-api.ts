@@ -27,6 +27,7 @@ export function classifyAdminResponse(status: number): AdminRequestError {
   if (status === 401) return 'unauthorized'
   if (status === 403) return 'forbidden'
   if (status === 429) return 'rate-limited'
+  if (status === 502) return 'unavailable'
   if (status >= 500) return 'server-error'
   return 'unavailable'
 }

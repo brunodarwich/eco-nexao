@@ -3,6 +3,7 @@ import {
   AdminApiError,
   adminMutation,
   adminRequest,
+  classifyAdminResponse,
   fetchDashboardSummary,
   getAdminRequestError,
 } from './admin-api'
@@ -79,6 +80,13 @@ describe('admin API client', () => {
     const error = await adminRequest('reports/').catch((caught) => caught)
     expect(error).toBeInstanceOf(AdminApiError)
     expect(getAdminRequestError(error)).toBe('unavailable')
+  })
+
+  it('distinguishes upstream unavailability from an internal server error', () => {
+    expect(classifyAdminResponse(500)).toBe('server-error')
+    expect(classifyAdminResponse(502)).toBe('unavailable')
+    expect(classifyAdminResponse(503)).toBe('server-error')
+    expect(classifyAdminResponse(504)).toBe('server-error')
   })
 
   it('fetches dashboard summary with region query parameter', async () => {

@@ -1,3 +1,4 @@
+import path from 'path'
 import { defineConfig, devices } from '@playwright/test'
 
 const useExternalServer = process.env.PLAYWRIGHT_EXTERNAL_SERVER === 'true'
@@ -17,17 +18,32 @@ export default defineConfig({
   },
   webServer: useExternalServer
     ? undefined
-    : {
-        command: 'pnpm exec next build && pnpm exec next start --port 3100',
-        env: {
-          ...process.env,
-          NEXT_DIST_DIR: '.next-e2e',
-          NEXT_E2E_BUILD: 'true',
+    : [
+        {
+          command: 'pnpm exec next build && pnpm exec next start --port 3100',
+          env: {
+            ...process.env,
+            NEXT_DIST_DIR: '.next-e2e',
+            NEXT_E2E_BUILD: 'true',
+          },
+          reuseExistingServer: !process.env.CI,
+          timeout: 180_000,
+          url: 'http://localhost:3100',
         },
-        reuseExistingServer: true,
-        timeout: 180_000,
-        url: baseURL,
-      },
+        {
+          command:
+            'pnpm exec next build --webpack && pnpm exec next start --port 3001',
+          cwd: path.resolve(__dirname, '../admin'),
+          env: {
+            ...process.env,
+            NEXT_DIST_DIR: '.next-e2e',
+            NEXT_E2E_BUILD: 'true',
+          },
+          reuseExistingServer: !process.env.CI,
+          timeout: 180_000,
+          url: 'http://localhost:3001',
+        },
+      ],
   projects: [
     {
       name: 'chromium',

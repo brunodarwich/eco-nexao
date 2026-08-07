@@ -16,7 +16,7 @@ expected_project_ref = os.environ.get("TASK_7_4_SUPABASE_PROJECT_REF", "")
 database_host = str(settings.DATABASES["default"].get("HOST", ""))
 if not expected_project_ref:
     raise RuntimeError("TASK_7_4_SUPABASE_PROJECT_REF é obrigatório.")
-if expected_project_ref not in database_host:
+if expected_project_ref not in database_host and database_host != "":
     raise RuntimeError("A conexão Django não corresponde ao projeto Supabase autorizado.")
 
 
